@@ -31,7 +31,7 @@ dependencies {
 
     implementation "org.slf4j:slf4j-api:$slf4j"
 
-    testImplementation 'ch.qos.logback:logback-classic:1.2.3'
+    testImplementation 'ch.qos.logback:logback-classic:1.2.7'
     testImplementation "org.slf4j:jul-to-slf4j:$slf4j"
     testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
 }
