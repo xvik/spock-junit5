@@ -19,7 +19,7 @@ wrapper {
 
 ext {
     groovy = '2.5.14'
-    slf4j = '1.7.30'
+    slf4j = '1.7.32'
 }
 
 repositories { mavenLocal(); mavenCentral() }
