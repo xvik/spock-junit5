@@ -1,0 +1,17 @@
+{
+  "generator-lib-java": {
+    "multiModule": false,
+    "modulePrefix": "-",
+    "moduleName": "-",
+    "githubUser": "xvik",
+    "authorName": "Vyacheslav Rusakov",
+    "authorEmail": "vyarus@gmail.com",
+    "libName": "spock-junit5",
+    "libGroup": "ru.vyarus",
+    "libPackage": "ru.vyarus.spock.jupiter",
+    "libVersion": "1.0.0",
+    "libDesc": "Junit 5 extensions integration for Spock Framework",
+    "enableQualityChecks": true,
+    "usedGeneratorVersion": "3.0.3"
+  }
+}
