@@ -21,7 +21,7 @@ repositories { mavenLocal(); mavenCentral() }
 dependencies {
     implementation platform('org.junit:junit-bom:5.8.2')
 
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.5.0'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.5.1'
 
     // to not attach to exact version
     provided 'org.spockframework:spock-core:2.0-groovy-3.0'
