@@ -26,6 +26,12 @@ dependencies {
     // to not attach to exact version
     provided 'org.spockframework:spock-core:2.0-groovy-3.0'
     provided 'org.junit.jupiter:junit-jupiter-api'
+
+    // todo remove (use only for investigations)
+    compileOnly 'org.junit.jupiter:junit-jupiter'
+
+    testImplementation 'org.junit.platform:junit-platform-testkit'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter'
 }
 
 group = 'ru.vyarus'
