@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ru.vyarus.spock.jupiter.support.ActionHolder;
+import ru.vyarus.spock.jupiter.support.LifecycleExtension;
 import ru.vyarus.spock.jupiter.support.ParameterExtension;
 
 /**
@@ -15,7 +16,7 @@ import ru.vyarus.spock.jupiter.support.ParameterExtension;
  * @since 23.12.2021
  */
 @Disabled
-@ExtendWith(ParameterExtension.class)
+@ExtendWith({LifecycleExtension.class, ParameterExtension.class})
 public class ParameterTest {
 
     @BeforeAll

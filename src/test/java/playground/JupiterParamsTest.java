@@ -16,10 +16,21 @@ public class JupiterParamsTest extends AbstractJupiterTest {
     void testParams() {
         Assertions.assertEquals(runTest(ParameterTest.class),
                 Arrays.asList(
+                        "BeforeAllCallback",
+                        "ParameterExtension beforeAll",
                         "test.beforeAll 11",
+                        "BeforeEachCallback",
+                        "ParameterExtension setUp",
                         "test.before 11",
+                        "BeforeTestExecutionCallback",
+                        "ParameterExtension sampleTest",
                         "test.body 11",
+                        "AfterTestExecutionCallback",
+                        "ParameterExtension tearDown",
                         "test.after 11",
-                        "test.afterAll 11"));
+                        "AfterEachCallback",
+                        "ParameterExtension afterAll",
+                        "test.afterAll 11",
+                        "AfterAllCallback"));
     }
 }
