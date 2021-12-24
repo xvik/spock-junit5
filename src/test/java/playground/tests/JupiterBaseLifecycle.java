@@ -16,7 +16,7 @@ import ru.vyarus.spock.jupiter.support.LifecycleExtension;
  */
 @Disabled
 @ExtendWith(LifecycleExtension.class)
-public class BaseLifecycle {
+public class JupiterBaseLifecycle {
 
     @BeforeAll
     static void beforeAll() {

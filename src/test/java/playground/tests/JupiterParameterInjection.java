@@ -17,7 +17,7 @@ import ru.vyarus.spock.jupiter.support.ParameterExtension;
  */
 @Disabled
 @ExtendWith({LifecycleExtension.class, ParameterExtension.class})
-public class ParameterTest {
+public class JupiterParameterInjection {
 
     @BeforeAll
     static void beforeAll(Integer arg) {

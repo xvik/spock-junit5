@@ -2,8 +2,8 @@ package playground;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import playground.tests.BaseLifecycle;
-import playground.tests.DoubleLifecycle;
+import playground.tests.JupiterBaseLifecycle;
+import playground.tests.JupiterDoubleLifecycle;
 
 import java.util.Arrays;
 
@@ -15,7 +15,7 @@ public class JupiterLifecycleTest extends AbstractJupiterTest {
 
     @Test
     void testBaseLifecycle() {
-        Assertions.assertEquals(runTest(BaseLifecycle.class),
+        Assertions.assertEquals(runTest(JupiterBaseLifecycle.class),
                 Arrays.asList(
                         "BeforeAllCallback",
                         "test.beforeAll",
@@ -32,7 +32,7 @@ public class JupiterLifecycleTest extends AbstractJupiterTest {
 
     @Test
     void testDoubleLifecycle() {
-        Assertions.assertEquals(runTest(DoubleLifecycle.class),
+        Assertions.assertEquals(runTest(JupiterDoubleLifecycle.class),
                 Arrays.asList(
                         "BeforeAllCallback",
                         "BeforeAllCallback-2",

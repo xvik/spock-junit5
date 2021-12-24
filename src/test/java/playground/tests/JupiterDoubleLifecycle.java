@@ -10,5 +10,5 @@ import ru.vyarus.spock.jupiter.support.LifecycleExtension2;
  */
 @Disabled
 @ExtendWith(LifecycleExtension2.class)
-public class DoubleLifecycle extends BaseLifecycle {
+public class JupiterDoubleLifecycle extends JupiterBaseLifecycle {
 }

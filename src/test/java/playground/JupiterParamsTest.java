@@ -2,7 +2,7 @@ package playground;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import playground.tests.ParameterTest;
+import playground.tests.JupiterParameterInjection;
 
 import java.util.Arrays;
 
@@ -14,7 +14,7 @@ public class JupiterParamsTest extends AbstractJupiterTest {
 
     @Test
     void testParams() {
-        Assertions.assertEquals(runTest(ParameterTest.class),
+        Assertions.assertEquals(runTest(JupiterParameterInjection.class),
                 Arrays.asList(
                         "BeforeAllCallback",
                         "ParameterExtension beforeAll",

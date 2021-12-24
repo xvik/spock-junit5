@@ -12,7 +12,7 @@ import spock.lang.Specification
  */
 //@Ignore
 @ExtendWith([LifecycleExtension, ParameterExtension])
-class SpockParameterTest extends Specification {
+class SpockParameterInjection extends Specification {
 
     void setupSpec(Integer arg) {
         ActionHolder.add("test.beforeAll $arg");
