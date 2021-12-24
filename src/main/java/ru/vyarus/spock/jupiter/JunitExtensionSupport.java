@@ -58,9 +58,11 @@ public class JunitExtensionSupport implements IGlobalExtension {
         spec.addCleanupInterceptor(interceptor);
         spec.addCleanupSpecInterceptor(interceptor);
 
-        // intercept methods
-        spec.getAllFeatures().forEach(featureInfo -> featureInfo.getFeatureMethod().addInterceptor(interceptor));
+        // add support for custom parameters on setup(spec)/cleanup(spec) methods
+        spec.getAllFixtureMethods().forEach(methodInfo ->
+                methodInfo.addInterceptor(interceptor.getFixtureMethodsInterceptor()));
 
-        //todo method analysis org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.populateNewExtensionRegistry
+        // intercept test methods (inject parameters and before/after execution hooks)
+        spec.getAllFeatures().forEach(featureInfo -> featureInfo.getFeatureMethod().addInterceptor(interceptor));
     }
 }

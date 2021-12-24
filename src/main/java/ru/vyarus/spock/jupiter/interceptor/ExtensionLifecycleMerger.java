@@ -44,19 +44,27 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     private final Map<AnnotatedElement, MethodContext> methods;
     private final ThrowableCollector collector = new OpenTest4JAwareThrowableCollector();
 
+    private final IMethodInterceptor fixtureMethodsInterceptor;
+
 
     public ExtensionLifecycleMerger(final ClassContext context,
                                     final Map<AnnotatedElement, MethodContext> methods) {
         this.context = context;
         this.methods = methods;
 
-        final IMethodInterceptor interceptor = invocation -> {
-            injectArguments(invocation, context);
+        fixtureMethodsInterceptor = invocation -> {
+            AbstractContext ctx = context;
+            // setup/cleanup methods must use method context
+            if (invocation.getFeature() != null) {
+                ctx = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
+            }
+            injectArguments(invocation, ctx);
             invocation.proceed();
         };
+    }
 
-        // add support for custom parameters on setup(spec)/cleanup(spec) methods
-        context.getSpec().getAllFixtureMethods().forEach(methodInfo -> methodInfo.addInterceptor(interceptor));
+    public IMethodInterceptor getFixtureMethodsInterceptor() {
+        return fixtureMethodsInterceptor;
     }
 
     @Override
@@ -82,8 +90,8 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     @Override
     public void interceptSetupMethod(IMethodInvocation invocation) throws Throwable {
         // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeBeforeEachCallbacks
-        final MethodContext mcontext = methods.get(invocation.getMethod().getReflection());
-        final List<BeforeEachCallback> exts = context.getRegistry().getExtensions(BeforeEachCallback.class);
+        final MethodContext mcontext = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
+        final List<BeforeEachCallback> exts = mcontext.getRegistry().getExtensions(BeforeEachCallback.class);
         if (!exts.isEmpty()) {
             logger.debug(() -> "Junit " + context.getSpec().getReflection().getSimpleName() + ".BeforeEachCallback: " + exts);
         }
@@ -102,10 +110,10 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     public void interceptFeatureMethod(IMethodInvocation invocation) throws Throwable {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName()
                 + ".'" + invocation.getFeature().getDisplayName() + "' execution");
-        final MethodContext mcontext = methods.get(invocation.getMethod().getReflection());
+        final MethodContext mcontext = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
         try {
             // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeBeforeTestExecutionCallbacks()
-            final List<BeforeTestExecutionCallback> exts = context.getRegistry()
+            final List<BeforeTestExecutionCallback> exts = mcontext.getRegistry()
                     .getExtensions(BeforeTestExecutionCallback.class);
             if (!exts.isEmpty()) {
                 logger.debug(() -> "Junit " + context.getSpec().getReflection().getSimpleName()
@@ -122,7 +130,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
             invocation.proceed();
         } finally {
             // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeAfterTestExecutionCallbacks()
-            final List<AfterTestExecutionCallback> exts = context.getRegistry()
+            final List<AfterTestExecutionCallback> exts = mcontext.getRegistry()
                     .getReversedExtensions(AfterTestExecutionCallback.class);
             if (!exts.isEmpty()) {
                 logger.debug(() -> "Junit " + context.getSpec().getReflection().getSimpleName()
@@ -136,10 +144,10 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     public void interceptCleanupMethod(IMethodInvocation invocation) throws Throwable {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".cleanup");
         // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeAfterEachCallbacks
-        final MethodContext mcontext = methods.get(invocation.getMethod().getReflection());
+        final MethodContext mcontext = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
         // no real method call here
         invocation.proceed();
-        final List<AfterEachCallback> exts = context.getRegistry().getReversedExtensions(AfterEachCallback.class);
+        final List<AfterEachCallback> exts = mcontext.getRegistry().getReversedExtensions(AfterEachCallback.class);
         if (!exts.isEmpty()) {
             logger.debug(() -> "Junit " + context.getSpec().getReflection().getSimpleName()
                     + ".AfterEachCallback: " + exts);

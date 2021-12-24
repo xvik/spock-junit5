@@ -8,7 +8,7 @@ import ru.vyarus.spock.jupiter.test.SpockParameterInjection
  */
 class SpockParamsTest extends AbstractTest {
 
-    def "Test params injection"() {
+    def "Check params injection"() {
 
         expect: 'params injected'
         runTest(SpockParameterInjection) == ["BeforeAllCallback",

@@ -2,6 +2,9 @@ package ru.vyarus.spock.jupiter
 
 import ru.vyarus.spock.jupiter.test.SpockBaseLifecycle
 import ru.vyarus.spock.jupiter.test.SpockDoubleLifecycle
+import ru.vyarus.spock.jupiter.test.SpockSetupAllMethodExtensions
+import ru.vyarus.spock.jupiter.test.SpockSetupMethodExtensions
+import ru.vyarus.spock.jupiter.test.SpockTestMethodExtensions
 
 /**
  * @author Vyacheslav Rusakov
@@ -9,7 +12,7 @@ import ru.vyarus.spock.jupiter.test.SpockDoubleLifecycle
  */
 class SpockLifecycleTest extends AbstractTest {
 
-    def "Test base lifecycle"() {
+    def "Check base lifecycle"() {
 
         expect: 'correct lifecycle order'
         runTest(SpockBaseLifecycle) == ["BeforeAllCallback",
@@ -25,7 +28,7 @@ class SpockLifecycleTest extends AbstractTest {
                                         "AfterAllCallback"]
     }
 
-    def "Test double lifecycle"() {
+    def "Check double lifecycle"() {
 
         expect: 'correct lifecycle order for two extensions'
         runTest(SpockDoubleLifecycle) == ["BeforeAllCallback",
@@ -45,5 +48,48 @@ class SpockLifecycleTest extends AbstractTest {
                                           "test.afterAll",
                                           "AfterAllCallback-2",
                                           "AfterAllCallback"]
+    }
+
+    def "Check test method extensions"() {
+
+        expect: 'extensions registered from method and parameter'
+        runTest(SpockTestMethodExtensions) == ["BeforeEachCallback",
+                                               "BeforeEachCallback-2",
+                                               "BeforeTestExecutionCallback",
+                                               "BeforeTestExecutionCallback-2",
+                                               "ParameterExtension \$spock_feature_0_0",
+                                               "test.body 11",
+                                               "AfterTestExecutionCallback-2",
+                                               "AfterTestExecutionCallback",
+                                               "AfterEachCallback-2",
+                                               "AfterEachCallback"]
+    }
+
+    def "Check setupAll method extensions"() {
+
+        expect: 'extensions registered only from method parameter'
+        runTest(SpockSetupAllMethodExtensions) == ["BeforeAllCallback-2",
+                                                   "ParameterExtension setupSpec",
+                                                   "test.beforeAll 11",
+                                                   "BeforeEachCallback-2",
+                                                   "BeforeTestExecutionCallback-2",
+                                                   "test.body",
+                                                   "AfterTestExecutionCallback-2",
+                                                   "AfterEachCallback-2",
+                                                   "AfterAllCallback-2"]
+    }
+
+    def "Check setup method extensions"() {
+
+        expect: 'extensions registered only from method parameter'
+        runTest(SpockSetupMethodExtensions) == ["BeforeAllCallback-2",
+                                                "BeforeEachCallback-2",
+                                                "ParameterExtension setup",
+                                                "test.before 11",
+                                                "BeforeTestExecutionCallback-2",
+                                                "test.body",
+                                                "AfterTestExecutionCallback-2",
+                                                "AfterEachCallback-2",
+                                                "AfterAllCallback-2"]
     }
 }
