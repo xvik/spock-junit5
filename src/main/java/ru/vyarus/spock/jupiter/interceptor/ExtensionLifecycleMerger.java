@@ -6,19 +6,28 @@ import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
+import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCollector;
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
+import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
+import org.spockframework.runtime.model.MethodInfo;
+import ru.vyarus.spock.jupiter.engine.ExtensionUtils;
+import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
+import ru.vyarus.spock.jupiter.engine.context.DefaultParameterContext;
 import ru.vyarus.spock.jupiter.engine.context.DefaultTestInstances;
 import ru.vyarus.spock.jupiter.engine.context.MethodContext;
 
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Implementation based on {@code org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor} and
@@ -40,6 +49,14 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                                     final Map<AnnotatedElement, MethodContext> methods) {
         this.context = context;
         this.methods = methods;
+
+        final IMethodInterceptor interceptor = invocation -> {
+            injectArguments(invocation, context);
+            invocation.proceed();
+        };
+
+        // add support for custom parameters on setup(spec)/cleanup(spec) methods
+        context.getSpec().getAllFixtureMethods().forEach(methodInfo -> methodInfo.addInterceptor(interceptor));
     }
 
     @Override
@@ -58,6 +75,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
             }
         }
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".setupSpec");
+        // no real method call here
         invocation.proceed();
     }
 
@@ -76,6 +94,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
             }
         }
         logger.debug(() -> "Spock  " + context.getSpec().getReflection().getSimpleName() + ".setup");
+        // no real method call here
         invocation.proceed();
     }
 
@@ -99,6 +118,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                 }
             }
 
+            injectArguments(invocation, mcontext);
             invocation.proceed();
         } finally {
             // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeAfterTestExecutionCallbacks()
@@ -116,8 +136,9 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     public void interceptCleanupMethod(IMethodInvocation invocation) throws Throwable {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".cleanup");
         // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeAfterEachCallbacks
-        invocation.proceed();
         final MethodContext mcontext = methods.get(invocation.getMethod().getReflection());
+        // no real method call here
+        invocation.proceed();
         final List<AfterEachCallback> exts = context.getRegistry().getReversedExtensions(AfterEachCallback.class);
         if (!exts.isEmpty()) {
             logger.debug(() -> "Junit " + context.getSpec().getReflection().getSimpleName()
@@ -130,6 +151,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     public void interceptCleanupSpecMethod(IMethodInvocation invocation) throws Throwable {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".cleanupSpec");
         // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeAfterAllCallbacks
+        // no real method call here
         invocation.proceed();
         final List<AfterAllCallback> exts = context.getRegistry().getReversedExtensions(AfterAllCallback.class);
         if (!exts.isEmpty()) {
@@ -140,5 +162,27 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
 
         // flushing context instance
         context.setInstances(null);
+    }
+
+    private void injectArguments(IMethodInvocation invocation, AbstractContext context) {
+        final Method method = invocation.getMethod().getReflection();
+        final Object[] arguments = invocation.getArguments();
+        if (method == null || arguments.length == 0) {
+            // null is a case when there is no real method for setup/cleanup (nothing to inject then)
+            return;
+        }
+        final Parameter[] parameters = method.getParameters();
+        for (int i = 0; i < arguments.length; i++) {
+            // look only arguments not processed by spock (e.g data providers or other extensions)
+            if (arguments[i] == MethodInfo.MISSING_ARGUMENT) {
+                // based on org.junit.jupiter.engine.execution.ExecutableInvoker.resolveParameter
+                final Parameter param = parameters[i];
+                final ParameterContext parameterContext = new DefaultParameterContext(
+                        param, i, Optional.ofNullable(invocation.getTarget()));
+                // if parameter provider would not be found, value would remain as MISSING_ARGUMENT
+                // (assuming native spock extension would process this parameter)
+                arguments[i] = ExtensionUtils.resolveParameter(parameterContext, method, context);
+            }
+        }
     }
 }

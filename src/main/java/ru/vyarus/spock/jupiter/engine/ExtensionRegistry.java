@@ -139,7 +139,7 @@ public class ExtensionRegistry {
                 .collect(Collectors.toList());
 
         if (!unsupported.isEmpty()) {
-            throw new IllegalStateException("Extension " + extension.getName() + " requires not supported extension "
+            logger.warn(() -> "Extension " + extension.getName() + " implements not supported extension "
                     + "types: " + unsupported.stream()
                     .map(Class::getSimpleName)
                     .collect(Collectors.joining(", ")));

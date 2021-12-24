@@ -34,6 +34,11 @@ public class JunitExtensionSupport implements IGlobalExtension {
         // after extensions registered via @ExtendWith.
         ExtensionUtils.registerExtensionsFromFields(registry, testClass, null);
 
+        // register extensions from setupSpec, setup, cleanup, cleanupSpec method parameters
+        // (see org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.prepare for reference logic)
+        spec.getAllFixtureMethods().forEach(methodInfo -> ExtensionUtils
+                .registerExtensionsFromExecutableParameters(registry, methodInfo.getReflection()));
+
         final ClassContext specContext = new ClassContext(null, registry, testClass, spec);
 
         // parse all methods immediately to reveal possible problems
@@ -42,6 +47,7 @@ public class JunitExtensionSupport implements IGlobalExtension {
             // support method-level extensions
             final Method method = feature.getFeatureMethod().getReflection();
             final ExtensionRegistry methodRegistry = ExtensionUtils.createMethodRegistry(registry, method);
+            ExtensionUtils.registerExtensionsFromExecutableParameters(methodRegistry, method);
             methods.put(method, new MethodContext(specContext, methodRegistry, method, feature));
         }
 

@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
@@ -18,25 +20,36 @@ import org.junit.jupiter.api.extension.TestInstanceFactory;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.jupiter.api.extension.TestInstancePreDestroyCallback;
 import org.junit.jupiter.api.extension.TestWatcher;
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.commons.util.ReflectionUtils;
+import org.junit.platform.commons.util.StringUtils;
+import org.junit.platform.commons.util.UnrecoverableExceptions;
+import org.spockframework.runtime.model.MethodInfo;
+import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.junit.platform.commons.util.AnnotationUtils.findAnnotation;
 import static org.junit.platform.commons.util.AnnotationUtils.findRepeatableAnnotations;
 import static org.junit.platform.commons.util.AnnotationUtils.isAnnotated;
 import static org.junit.platform.commons.util.ReflectionUtils.HierarchyTraversalMode.TOP_DOWN;
 import static org.junit.platform.commons.util.ReflectionUtils.findFields;
+import static org.junit.platform.commons.util.ReflectionUtils.isAssignableTo;
 import static org.junit.platform.commons.util.ReflectionUtils.tryToReadFieldValue;
 
 /**
@@ -45,6 +58,8 @@ import static org.junit.platform.commons.util.ReflectionUtils.tryToReadFieldValu
  */
 public class ExtensionUtils {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(ExtensionUtils.class);
+
     // see full list in org.junit.jupiter.api.extension.RegisterExtension
     public static final List<Class<? extends Extension>> SUPPORTED_EXTENSIONS = Arrays.asList(
             BeforeAllCallback.class,
@@ -52,7 +67,8 @@ public class ExtensionUtils {
             BeforeEachCallback.class,
             AfterEachCallback.class,
             BeforeTestExecutionCallback.class,
-            AfterTestExecutionCallback.class
+            AfterTestExecutionCallback.class,
+            ParameterResolver.class
     );
 
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
@@ -61,7 +77,6 @@ public class ExtensionUtils {
             TestInstanceFactory.class,
             TestInstancePostProcessor.class,
             TestInstancePreDestroyCallback.class,
-            ParameterResolver.class,
             TestExecutionExceptionHandler.class,
             TestWatcher.class
             // TestTemplateInvocationContextProvider not included because it doesn't matter
@@ -73,11 +88,15 @@ public class ExtensionUtils {
         return registry;
     }
 
-    // source: org.junit.jupiter.engine.descriptor.ExtensionUtils.populateNewExtensionRegistryFromExtendWithAnnotation
+    // source: org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.populateNewExtensionRegistry
+    // (aggregates several deeper methods)
     public static ExtensionRegistry createMethodRegistry(final ExtensionRegistry root, final Method method) {
         final Stream<Class<? extends Extension>> extensions = streamExtensionTypes(method);
         final ExtensionRegistry registry = new ExtensionRegistry(root);
         extensions.forEach(registry::registerExtension);
+
+        // extensions from method parameters
+        registerExtensionsFromExecutableParameters(registry, method);
         return registry;
     }
 
@@ -135,6 +154,107 @@ public class ExtensionUtils {
                         });
                     }
                 });
+    }
+
+    /**
+     * Register extensions using the supplied registrar from parameters in the
+     * supplied {@link Executable} (i.e., a {@link java.lang.reflect.Constructor}
+     * or {@link java.lang.reflect.Method}) that are annotated with
+     * {@link ExtendWith @ExtendWith}.
+     *
+     * @param registrar  the registrar with which to register the extensions; never {@code null}
+     * @param executable the constructor or method whose parameters should be searched; never {@code null}
+     */
+    // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromExecutableParameters
+    public static void registerExtensionsFromExecutableParameters(ExtensionRegistry registrar, Executable executable) {
+        Preconditions.notNull(registrar, "ExtensionRegistrar must not be null");
+        Preconditions.notNull(executable, "Executable must not be null");
+
+        AtomicInteger index = new AtomicInteger();
+
+        // @formatter:off
+        Arrays.stream(executable.getParameters())
+                .map(parameter -> findRepeatableAnnotations(parameter, index.getAndIncrement(), ExtendWith.class))
+                .flatMap(ExtensionUtils::streamExtensionTypes)
+                .forEach(registrar::registerExtension);
+        // @formatter:on
+    }
+
+    // based on org.junit.jupiter.engine.execution.ExecutableInvoker.resolveParameter
+    public static Object resolveParameter(ParameterContext parameterContext,
+                                          Executable executable,
+                                          AbstractContext context) {
+        try {
+            final List<ParameterResolver> exts = context.getRegistry().stream(ParameterResolver.class)
+                    .filter(resolver -> resolver.supportsParameter(parameterContext, context))
+                    .collect(toList());
+
+            if (exts.isEmpty()) {
+                // no problem - assume other spock extension  supposed to proceed with this parameter
+                return MethodInfo.MISSING_ARGUMENT;
+            }
+
+            if (exts.size() > 1) {
+                String resolvers = exts.stream()
+                        .map(StringUtils::defaultToString)
+                        .collect(joining(", "));
+                throw new ParameterResolutionException(
+                        String.format("Discovered multiple competing ParameterResolvers for parameter [%s] in " +
+                                        "method [%s]: %s",
+                                parameterContext.getParameter(), executable.toGenericString(), resolvers));
+            }
+
+            ParameterResolver resolver = exts.get(0);
+            Object value = resolver.resolveParameter(parameterContext, context);
+            validateResolvedType(parameterContext.getParameter(), value, executable, resolver);
+
+            LOGGER.debug(() -> String.format(
+                    "ParameterResolver [%s] resolved a value of type [%s] for parameter [%s] in method [%s].",
+                    resolver.getClass().getName(), (value != null ? value.getClass().getName() : null),
+                    parameterContext.getParameter(), executable.toGenericString()));
+
+            return value;
+        } catch (ParameterResolutionException ex) {
+            throw ex;
+        } catch (Throwable throwable) {
+            UnrecoverableExceptions.rethrowIfUnrecoverable(throwable);
+
+            String message = String.format("Failed to resolve parameter [%s] in method [%s]",
+                    parameterContext.getParameter(), executable.toGenericString());
+
+            if (StringUtils.isNotBlank(throwable.getMessage())) {
+                message += ": " + throwable.getMessage();
+            }
+
+            throw new ParameterResolutionException(message, throwable);
+        }
+    }
+
+    private static void validateResolvedType(Parameter parameter,
+                                             Object value,
+                                             Executable executable,
+                                             ParameterResolver resolver) {
+
+        Class<?> type = parameter.getType();
+
+        // Note: null is permissible as a resolved value but only for non-primitive types.
+        if (!isAssignableTo(value, type)) {
+            String message;
+            if (value == null && type.isPrimitive()) {
+                message = String.format(
+                        "ParameterResolver [%s] resolved a null value for parameter [%s] "
+                                + "in method [%s], but a primitive of type [%s] is required.",
+                        resolver.getClass().getName(), parameter, executable.toGenericString(), type.getName());
+            } else {
+                message = String.format(
+                        "ParameterResolver [%s] resolved a value of type [%s] for parameter [%s] "
+                                + "in method [%s], but a value assignment compatible with [%s] is required.",
+                        resolver.getClass().getName(), (value != null ? value.getClass().getName() : null), parameter,
+                        executable.toGenericString(), type.getName());
+            }
+
+            throw new ParameterResolutionException(message);
+        }
     }
 
     private static final Comparator<Field> orderComparator = Comparator.comparingInt(ExtensionUtils::getOrder);
