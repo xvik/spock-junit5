@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import playground.tests.JupiterBaseLifecycle;
 import playground.tests.JupiterDoubleLifecycle;
+import playground.tests.JupiterSetupMethodExtensions;
+import playground.tests.JupiterTestMethodExtensions;
 
 import java.util.Arrays;
 
@@ -51,5 +53,36 @@ public class JupiterLifecycleTest extends AbstractJupiterTest {
                         "test.afterAll",
                         "AfterAllCallback-2",
                         "AfterAllCallback"));
+    }
+
+    @Test
+    void testTestMethodExtensions() {
+        Assertions.assertEquals(runTest(JupiterTestMethodExtensions.class),
+                Arrays.asList(
+                        "BeforeEachCallback",
+                        "BeforeEachCallback-2",
+                        "BeforeTestExecutionCallback",
+                        "BeforeTestExecutionCallback-2",
+                        "ParameterExtension sampleTest",
+                        "test.body 11",
+                        "AfterTestExecutionCallback-2",
+                        "AfterTestExecutionCallback",
+                        "AfterEachCallback-2",
+                        "AfterEachCallback"));
+    }
+
+    @Test
+    void testSetupMethodExtensions() {
+        Assertions.assertEquals(runTest(JupiterSetupMethodExtensions.class),
+                Arrays.asList(
+                        "BeforeAllCallback-2",
+                        "ParameterExtension beforeAll",
+                        "test.beforeAll 11",
+                        "BeforeEachCallback-2",
+                        "BeforeTestExecutionCallback-2",
+                        "test.body",
+                        "AfterTestExecutionCallback-2",
+                        "AfterEachCallback-2",
+                        "AfterAllCallback-2"));
     }
 }
