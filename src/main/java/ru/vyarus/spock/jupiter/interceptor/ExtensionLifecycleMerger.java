@@ -69,8 +69,6 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
 
     @Override
     public void interceptSetupSpecMethod(IMethodInvocation invocation) throws Throwable {
-        context.setInstances(DefaultTestInstances.of(invocation.getInstance()));
-
         // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeBeforeAllCallbacks
         final List<BeforeAllCallback> exts = context.getRegistry().getExtensions(BeforeAllCallback.class);
         if (!exts.isEmpty()) {
@@ -91,6 +89,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     public void interceptSetupMethod(IMethodInvocation invocation) throws Throwable {
         // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeBeforeEachCallbacks
         final MethodContext mcontext = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
+        mcontext.setInstances(DefaultTestInstances.of(invocation.getInstance()));
         final List<BeforeEachCallback> exts = mcontext.getRegistry().getExtensions(BeforeEachCallback.class);
         if (!exts.isEmpty()) {
             logger.debug(() -> "Junit " + context.getSpec().getReflection().getSimpleName() + ".BeforeEachCallback: " + exts);
@@ -101,7 +100,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                 break;
             }
         }
-        logger.debug(() -> "Spock  " + context.getSpec().getReflection().getSimpleName() + ".setup");
+        logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".setup");
         // no real method call here
         invocation.proceed();
     }
@@ -153,6 +152,8 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                     + ".AfterEachCallback: " + exts);
         }
         exts.forEach(callback -> collector.execute(() -> callback.afterEach(mcontext)));
+        // flushing context instance
+        mcontext.setInstances(null);
     }
 
     @Override
@@ -167,9 +168,6 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                     + ".AfterAllCallback: " + exts);
         }
         exts.forEach(extension -> collector.execute(() -> extension.afterAll(context)));
-
-        // flushing context instance
-        context.setInstances(null);
     }
 
     private void injectArguments(IMethodInvocation invocation, AbstractContext context) {
