@@ -117,7 +117,7 @@ public class ExtensionUtils {
      * @param instance  the instance of the supplied class; may be {@code null}
      *                  when searching for {@code static} fields in the class
      */
-    // based on org.junit.jupiter.engine.descriptor.ExtensionUtils from junit-jupiter-engine (5.8)
+    // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromFields
     public static void registerExtensionsFromFields(ExtensionRegistry registrar, Class<?> clazz, Object instance) {
         Preconditions.notNull(registrar, "ExtensionRegistrar must not be null");
         Preconditions.notNull(clazz, "Class must not be null");

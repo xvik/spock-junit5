@@ -90,6 +90,10 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeBeforeEachCallbacks
         final MethodContext mcontext = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
         mcontext.setInstances(DefaultTestInstances.of(invocation.getInstance()));
+        // todo invalid
+        // register non-static @RegisterExtension annotated extensions
+        ExtensionUtils.registerExtensionsFromFields(
+                mcontext.getRegistry(), mcontext.getRequiredTestClass(), invocation.getInstance());
         final List<BeforeEachCallback> exts = mcontext.getRegistry().getExtensions(BeforeEachCallback.class);
         if (!exts.isEmpty()) {
             logger.debug(() -> "Junit " + context.getSpec().getReflection().getSimpleName() + ".BeforeEachCallback: " + exts);

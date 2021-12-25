@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class JupiterManualRegTest extends AbstractJupiterTest {
 
     @Test
-    void testDoubleLifecycle() {
+    void testManualRegistration() {
         Assertions.assertEquals(runTest(JupiterManualRegistration.class),
                 Arrays.asList(
                         "BeforeAllCallback",
