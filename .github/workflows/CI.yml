@@ -33,8 +33,8 @@ jobs:
       - name: Build coverage report
         run: ./gradlew jacocoTestReport --no-daemon
 
-      - uses: codecov/codecov-action@v2
-        with:
-          files: build/reports/jacoco/test/jacocoTestReport.xml
-          flags: LINUX
-          fail_ci_if_error: true
+#      - uses: codecov/codecov-action@v2
+#        with:
+#          files: build/reports/jacoco/test/jacocoTestReport.xml
+#          flags: LINUX
+#          fail_ci_if_error: true
