@@ -1,5 +1,6 @@
 package ru.vyarus.spock.jupiter.interceptor;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -9,25 +10,26 @@ import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
+import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCollector;
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
 import org.spockframework.runtime.model.MethodInfo;
+import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.ExtensionUtils;
 import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
 import ru.vyarus.spock.jupiter.engine.context.DefaultParameterContext;
-import ru.vyarus.spock.jupiter.engine.context.DefaultTestInstances;
 import ru.vyarus.spock.jupiter.engine.context.MethodContext;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implementation based on {@code org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor} and
@@ -40,23 +42,24 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
 
     private final Logger logger = LoggerFactory.getLogger(ExtensionLifecycleMerger.class);
 
+    // map bounds test instance to its context
+    // thread local is not an option due to testKit tests (spock test calling spock test)
+    private final Map<Object, MethodContext> methods = new ConcurrentHashMap<>();
+
     private final ClassContext context;
-    private final Map<AnnotatedElement, MethodContext> methods;
     private final ThrowableCollector collector = new OpenTest4JAwareThrowableCollector();
 
     private final IMethodInterceptor fixtureMethodsInterceptor;
 
 
-    public ExtensionLifecycleMerger(final ClassContext context,
-                                    final Map<AnnotatedElement, MethodContext> methods) {
+    public ExtensionLifecycleMerger(final ClassContext context) {
         this.context = context;
-        this.methods = methods;
 
         fixtureMethodsInterceptor = invocation -> {
             AbstractContext ctx = context;
             // setup/cleanup methods must use method context
             if (invocation.getFeature() != null) {
-                ctx = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
+                ctx = getMethodContext(invocation);
             }
             injectArguments(invocation, ctx);
             invocation.proceed();
@@ -86,14 +89,28 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     }
 
     @Override
+    public void interceptInitializerMethod(IMethodInvocation invocation) throws Throwable {
+        logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".initialization");
+        invocation.proceed();
+
+        // in case of data iterations this analysis would be performed for each iteration
+        // this is required because extension must be re-created (and field-based extensions change instance)
+        final Method method = invocation.getFeature().getFeatureMethod().getReflection();
+        final ExtensionRegistry methodRegistry = ExtensionUtils.createMethodRegistry(context.getRegistry(), method);
+        ExtensionUtils.registerExtensionsFromExecutableParameters(methodRegistry, method);
+        // register non-static @RegisterExtension annotated extensions
+        final Object instance = Preconditions.notNull(invocation.getInstance(), "No spec instance");
+        ExtensionUtils.registerExtensionsFromFields(methodRegistry, context.getRequiredTestClass(), instance);
+        final MethodContext methodContext =
+                new MethodContext(context, methodRegistry, invocation.getFeature(), instance);
+        methods.put(instance, methodContext);
+        // todo instance post processor
+    }
+
+    @Override
     public void interceptSetupMethod(IMethodInvocation invocation) throws Throwable {
         // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeBeforeEachCallbacks
-        final MethodContext mcontext = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
-        mcontext.setInstances(DefaultTestInstances.of(invocation.getInstance()));
-        // todo invalid
-        // register non-static @RegisterExtension annotated extensions
-        ExtensionUtils.registerExtensionsFromFields(
-                mcontext.getRegistry(), mcontext.getRequiredTestClass(), invocation.getInstance());
+        final MethodContext mcontext = getMethodContext(invocation);
         final List<BeforeEachCallback> exts = mcontext.getRegistry().getExtensions(BeforeEachCallback.class);
         if (!exts.isEmpty()) {
             logger.debug(() -> "Junit " + context.getSpec().getReflection().getSimpleName() + ".BeforeEachCallback: " + exts);
@@ -113,7 +130,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     public void interceptFeatureMethod(IMethodInvocation invocation) throws Throwable {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName()
                 + ".'" + invocation.getFeature().getDisplayName() + "' execution");
-        final MethodContext mcontext = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
+        final MethodContext mcontext = getMethodContext(invocation);
         try {
             // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeBeforeTestExecutionCallbacks()
             final List<BeforeTestExecutionCallback> exts = mcontext.getRegistry()
@@ -147,7 +164,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     public void interceptCleanupMethod(IMethodInvocation invocation) throws Throwable {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".cleanup");
         // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeAfterEachCallbacks
-        final MethodContext mcontext = methods.get(invocation.getFeature().getFeatureMethod().getReflection());
+        final MethodContext mcontext = getMethodContext(invocation);
         // no real method call here
         invocation.proceed();
         final List<AfterEachCallback> exts = mcontext.getRegistry().getReversedExtensions(AfterEachCallback.class);
@@ -156,8 +173,8 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                     + ".AfterEachCallback: " + exts);
         }
         exts.forEach(callback -> collector.execute(() -> callback.afterEach(mcontext)));
-        // flushing context instance
-        mcontext.setInstances(null);
+        // feature execution or single iteration done
+        methods.remove(invocation.getInstance());
     }
 
     @Override
@@ -172,6 +189,12 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                     + ".AfterAllCallback: " + exts);
         }
         exts.forEach(extension -> collector.execute(() -> extension.afterAll(context)));
+    }
+
+    @NotNull
+    private MethodContext getMethodContext(final IMethodInvocation invocation) {
+        return Preconditions.notNull(methods.get(invocation.getInstance()), () -> "Method context not found for '"
+                + invocation.getFeature().getDisplayName() + "' feature");
     }
 
     private void injectArguments(IMethodInvocation invocation, AbstractContext context) {

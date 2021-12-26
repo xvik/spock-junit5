@@ -2,7 +2,6 @@ package ru.vyarus.spock.jupiter.engine.context;
 
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.TestInstances;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCollector;
@@ -36,7 +35,6 @@ public abstract class AbstractContext implements ExtensionContext {
     protected final ThrowableCollector collector;
 
     private final ExtensionValuesStore valuesStore;
-    private TestInstances instances;
 
     public AbstractContext(final ExtensionContext parent,
                            final ExtensionRegistry registry,
@@ -83,17 +81,6 @@ public abstract class AbstractContext implements ExtensionContext {
     }
 
     @Override
-    public Optional<Object> getTestInstance() {
-        return getTestInstances().map(TestInstances::getInnermostInstance);
-    }
-
-    @Override
-    public Optional<TestInstances> getTestInstances() {
-        // todo move to class level
-        return parent != null ? parent.getTestInstances() : Optional.ofNullable(instances);
-    }
-
-    @Override
     public Optional<Throwable> getExecutionException() {
         return Optional.ofNullable(this.collector.getThrowable());
     }
@@ -125,10 +112,6 @@ public abstract class AbstractContext implements ExtensionContext {
     public ExecutionMode getExecutionMode() {
         org.spockframework.runtime.model.parallel.ExecutionMode executionMode = spec.getExecutionMode().get();
         return ExecutionMode.valueOf(executionMode.name());
-    }
-
-    public void setInstances(TestInstances instances) {
-        this.instances = instances;
     }
 
     public ExtensionRegistry getRegistry() {

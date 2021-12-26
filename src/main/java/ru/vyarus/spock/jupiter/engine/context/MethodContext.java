@@ -1,10 +1,9 @@
 package ru.vyarus.spock.jupiter.engine.context;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.TestInstances;
 import org.spockframework.runtime.model.FeatureInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
@@ -17,10 +16,15 @@ import java.util.Optional;
 public class MethodContext extends AbstractContext {
 
     private final FeatureInfo feature;
+    private final TestInstances instances;
 
-    public MethodContext(ExtensionContext parent, ExtensionRegistry registry, AnnotatedElement element, FeatureInfo feature) {
-        super(parent, registry, element, ((ClassContext) parent).getSpec());
+    public MethodContext(ClassContext parent,
+                         ExtensionRegistry registry,
+                         FeatureInfo feature,
+                         Object testInstance) {
+        super(parent, registry, feature.getFeatureMethod().getReflection(), parent.getSpec());
         this.feature = feature;
+        instances = DefaultTestInstances.of(testInstance);
     }
 
     @Override
@@ -36,6 +40,16 @@ public class MethodContext extends AbstractContext {
     @Override
     public Optional<Method> getTestMethod() {
         return Optional.of((Method) feature.getReflection());
+    }
+
+    @Override
+    public Optional<Object> getTestInstance() {
+        return getTestInstances().map(TestInstances::getInnermostInstance);
+    }
+
+    @Override
+    public Optional<TestInstances> getTestInstances() {
+        return Optional.ofNullable(instances);
     }
 
     public FeatureInfo getFeature() {

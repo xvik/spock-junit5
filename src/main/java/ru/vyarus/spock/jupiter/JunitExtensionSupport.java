@@ -3,18 +3,11 @@ package ru.vyarus.spock.jupiter;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.spockframework.runtime.extension.IGlobalExtension;
-import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.ExtensionUtils;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
-import ru.vyarus.spock.jupiter.engine.context.MethodContext;
 import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
-
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Vyacheslav Rusakov
@@ -39,21 +32,16 @@ public class JunitExtensionSupport implements IGlobalExtension {
         spec.getAllFixtureMethods().forEach(methodInfo -> ExtensionUtils
                 .registerExtensionsFromExecutableParameters(registry, methodInfo.getReflection()));
 
-        final ClassContext specContext = new ClassContext(null, registry, testClass, spec);
+        final ClassContext specContext = new ClassContext(registry, spec);
 
-        // parse all methods immediately to reveal possible problems
-        final Map<AnnotatedElement, MethodContext> methods = new HashMap<>();
-        for (FeatureInfo feature : spec.getAllFeatures()) {
-            // support method-level extensions
-            final Method method = feature.getFeatureMethod().getReflection();
-            final ExtensionRegistry methodRegistry = ExtensionUtils.createMethodRegistry(registry, method);
-            ExtensionUtils.registerExtensionsFromExecutableParameters(methodRegistry, method);
-            methods.put(method, new MethodContext(specContext, methodRegistry, method, feature));
-        }
+        // note: method-level (feature) extensions are collected just before feature execution because
+        // in case of data-providers same feature would be executed several times and each time extensions
+        // must be renewed (including field-based instances registered with @RegisterExtensions).
 
         // https://spockframework.org/spock/docs/2.0/extensions.html
-        final ExtensionLifecycleMerger interceptor = new ExtensionLifecycleMerger(specContext, methods);
+        final ExtensionLifecycleMerger interceptor = new ExtensionLifecycleMerger(specContext);
         spec.addSetupSpecInterceptor(interceptor);
+        spec.addInitializerInterceptor(interceptor);
         spec.addSetupInterceptor(interceptor);
         spec.addCleanupInterceptor(interceptor);
         spec.addCleanupSpecInterceptor(interceptor);
