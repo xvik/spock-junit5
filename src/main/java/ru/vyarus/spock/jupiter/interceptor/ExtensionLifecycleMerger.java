@@ -27,6 +27,7 @@ import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
 import ru.vyarus.spock.jupiter.engine.context.DefaultParameterContext;
 import ru.vyarus.spock.jupiter.engine.context.MethodContext;
+import ru.vyarus.spock.jupiter.engine.execution.ConditionEvaluator;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -116,8 +117,13 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         ExtensionUtils.registerExtensionsFromFields(methodRegistry, context.getRequiredTestClass(), instance);
         final MethodContext methodContext =
                 new MethodContext(context, methodRegistry, invocation.getFeature(), instance);
+
+        if (ConditionEvaluator.skip(invocation.getFeature(), methodContext)) {
+            // skip execution based on junit's ExecutionCondition (possibly applied on method)
+            return;
+        }
+
         methods.put(instance, methodContext);
-        // todo instance post processor
     }
 
     @Override

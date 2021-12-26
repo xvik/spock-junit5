@@ -1,5 +1,6 @@
 package ru.vyarus.spock.jupiter;
 
+import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.spockframework.runtime.extension.IGlobalExtension;
@@ -7,6 +8,7 @@ import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.ExtensionUtils;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
+import ru.vyarus.spock.jupiter.engine.execution.ConditionEvaluator;
 import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
 
 /**
@@ -33,6 +35,11 @@ public class JunitExtensionSupport implements IGlobalExtension {
                 .registerExtensionsFromExecutableParameters(registry, methodInfo.getReflection()));
 
         final ClassContext specContext = new ClassContext(registry, spec);
+
+        if (ConditionEvaluator.skip(spec, specContext)) {
+            // skip execution based on junit's ExecutionCondition
+            return;
+        }
 
         // note: method-level (feature) extensions are collected just before feature execution because
         // in case of data-providers same feature would be executed several times and each time extensions

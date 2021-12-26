@@ -1,4 +1,4 @@
-package ru.vyarus.spock.jupiter.engine.context.store;
+package ru.vyarus.spock.jupiter.engine.store;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.Preconditions;

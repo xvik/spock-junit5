@@ -62,6 +62,7 @@ public class ExtensionUtils {
 
     // see full list in org.junit.jupiter.api.extension.RegisterExtension
     public static final List<Class<? extends Extension>> SUPPORTED_EXTENSIONS = Arrays.asList(
+            ExecutionCondition.class,
             BeforeAllCallback.class,
             AfterAllCallback.class,
             BeforeEachCallback.class,
@@ -74,7 +75,6 @@ public class ExtensionUtils {
     );
 
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
-            ExecutionCondition.class,
             InvocationInterceptor.class,
             TestInstanceFactory.class,
             TestExecutionExceptionHandler.class,

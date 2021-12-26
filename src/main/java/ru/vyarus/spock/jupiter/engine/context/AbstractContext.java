@@ -8,8 +8,8 @@ import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCo
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
-import ru.vyarus.spock.jupiter.engine.context.store.ExtensionValuesStore;
-import ru.vyarus.spock.jupiter.engine.context.store.NamespaceAwareStore;
+import ru.vyarus.spock.jupiter.engine.store.ExtensionValuesStore;
+import ru.vyarus.spock.jupiter.engine.store.NamespaceAwareStore;
 
 import java.lang.reflect.AnnotatedElement;
 import java.util.Collections;
