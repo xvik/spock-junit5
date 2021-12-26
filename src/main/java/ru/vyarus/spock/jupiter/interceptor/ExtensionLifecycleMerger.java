@@ -8,8 +8,12 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.TestInstancePostProcessor;
+import org.junit.jupiter.api.extension.TestInstancePreDestroyCallback;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
+import org.junit.platform.commons.util.ExceptionUtils;
 import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCollector;
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
@@ -83,6 +87,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                 break;
             }
         }
+        collector.assertEmpty();
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".setupSpec");
         // no real method call here
         invocation.proceed();
@@ -93,13 +98,21 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".initialization");
         invocation.proceed();
 
+        // post processors
+        // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeTestInstancePostProcessors
+        final Object instance = Preconditions.notNull(invocation.getInstance(), "No spec instance");
+        collector.execute(() ->
+                context.getRegistry().stream(TestInstancePostProcessor.class).forEach(
+                        extension -> executeAndMaskThrowable(() ->
+                                extension.postProcessTestInstance(instance, context))));
+        collector.assertEmpty();
+
         // in case of data iterations this analysis would be performed for each iteration
         // this is required because extension must be re-created (and field-based extensions change instance)
         final Method method = invocation.getFeature().getFeatureMethod().getReflection();
         final ExtensionRegistry methodRegistry = ExtensionUtils.createMethodRegistry(context.getRegistry(), method);
         ExtensionUtils.registerExtensionsFromExecutableParameters(methodRegistry, method);
         // register non-static @RegisterExtension annotated extensions
-        final Object instance = Preconditions.notNull(invocation.getInstance(), "No spec instance");
         ExtensionUtils.registerExtensionsFromFields(methodRegistry, context.getRequiredTestClass(), instance);
         final MethodContext methodContext =
                 new MethodContext(context, methodRegistry, invocation.getFeature(), instance);
@@ -121,6 +134,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                 break;
             }
         }
+        collector.assertEmpty();
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + ".setup");
         // no real method call here
         invocation.proceed();
@@ -145,6 +159,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                     break;
                 }
             }
+            collector.assertEmpty();
 
             injectArguments(invocation, mcontext);
             invocation.proceed();
@@ -157,6 +172,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                         + ".AfterTestExecutionCallback: " + exts);
             }
             exts.forEach(callback -> collector.execute(() -> callback.afterTestExecution(mcontext)));
+            collector.assertEmpty();
         }
     }
 
@@ -173,8 +189,14 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                     + ".AfterEachCallback: " + exts);
         }
         exts.forEach(callback -> collector.execute(() -> callback.afterEach(mcontext)));
+        collector.assertEmpty();
         // feature execution or single iteration done
         methods.remove(invocation.getInstance());
+
+        // pre destroy callbacks support (could be registered on method level)
+        mcontext.getRegistry().getReversedExtensions(TestInstancePreDestroyCallback.class).forEach(callback ->
+                collector.execute(() -> callback.preDestroyTestInstance(mcontext)));
+        collector.assertEmpty();
     }
 
     @Override
@@ -189,12 +211,21 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                     + ".AfterAllCallback: " + exts);
         }
         exts.forEach(extension -> collector.execute(() -> extension.afterAll(context)));
+        collector.assertEmpty();
     }
 
     @NotNull
     private MethodContext getMethodContext(final IMethodInvocation invocation) {
         return Preconditions.notNull(methods.get(invocation.getInstance()), () -> "Method context not found for '"
                 + invocation.getFeature().getDisplayName() + "' feature");
+    }
+
+    private void executeAndMaskThrowable(Executable executable) {
+        try {
+            executable.execute();
+        } catch (Throwable throwable) {
+            ExceptionUtils.throwAsUncheckedException(throwable);
+        }
     }
 
     private void injectArguments(IMethodInvocation invocation, AbstractContext context) {

@@ -58,7 +58,7 @@ import static org.junit.platform.commons.util.ReflectionUtils.tryToReadFieldValu
  */
 public class ExtensionUtils {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(ExtensionUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionUtils.class);
 
     // see full list in org.junit.jupiter.api.extension.RegisterExtension
     public static final List<Class<? extends Extension>> SUPPORTED_EXTENSIONS = Arrays.asList(
@@ -68,15 +68,15 @@ public class ExtensionUtils {
             AfterEachCallback.class,
             BeforeTestExecutionCallback.class,
             AfterTestExecutionCallback.class,
-            ParameterResolver.class
+            ParameterResolver.class,
+            TestInstancePostProcessor.class,
+            TestInstancePreDestroyCallback.class
     );
 
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
             ExecutionCondition.class,
             InvocationInterceptor.class,
             TestInstanceFactory.class,
-            TestInstancePostProcessor.class,
-            TestInstancePreDestroyCallback.class,
             TestExecutionExceptionHandler.class,
             TestWatcher.class
             // TestTemplateInvocationContextProvider not included because it doesn't matter
