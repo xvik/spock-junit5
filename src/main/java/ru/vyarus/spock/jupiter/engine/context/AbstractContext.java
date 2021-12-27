@@ -122,6 +122,13 @@ public abstract class AbstractContext implements ExtensionContext {
         return spec;
     }
 
+    // this is a big difference with junit itself because in junit each context has its own collector, but
+    // as exceptions propagate to upper levels, upper context collectors being affected. But in spock lifecycle
+    // listener collector scope is very limiting and so using context collector directly
+    public ThrowableCollector getCollector() {
+        return collector;
+    }
+
     private ExtensionValuesStore createStore(ExtensionContext parent) {
         ExtensionValuesStore parentStore = null;
         if (parent != null) {
