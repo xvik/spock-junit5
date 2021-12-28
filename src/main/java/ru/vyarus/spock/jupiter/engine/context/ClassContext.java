@@ -8,6 +8,8 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
+ * Represent spec level (class level). Used for instance post processors and before/after all extensions.
+ * <p>
  * Based on {@code org.junit.jupiter.engine.descriptor.ClassExtensionContext} from junit-jupiter-engine.
  *
  * @author Vyacheslav Rusakov
@@ -15,7 +17,7 @@ import java.util.Optional;
  */
 public class ClassContext extends AbstractContext {
 
-    public ClassContext(ExtensionRegistry registry, SpecInfo spec) {
+    public ClassContext(final ExtensionRegistry registry, final SpecInfo spec) {
         super(null, registry, spec.getReflection(), spec);
     }
 

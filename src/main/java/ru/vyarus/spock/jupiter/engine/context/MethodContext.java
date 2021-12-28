@@ -8,6 +8,9 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
+ * Represent feature level (test method level). In case of test iterations (data-driven) each iteration will have its
+ * own context (required to renew extension instances).
+ * <p>
  * Based on {@code org.junit.jupiter.engine.descriptor.MethodExtensionContext} from junit-jupiter-engine.
  *
  * @author Vyacheslav Rusakov
@@ -18,10 +21,10 @@ public class MethodContext extends AbstractContext {
     private final FeatureInfo feature;
     private final TestInstances instances;
 
-    public MethodContext(ClassContext parent,
-                         ExtensionRegistry registry,
-                         FeatureInfo feature,
-                         Object testInstance) {
+    public MethodContext(final ClassContext parent,
+                         final ExtensionRegistry registry,
+                         final FeatureInfo feature,
+                         final Object testInstance) {
         super(parent, registry, feature.getFeatureMethod().getReflection(), parent.getSpec());
         this.feature = feature;
         instances = DefaultTestInstances.of(testInstance);
@@ -50,9 +53,5 @@ public class MethodContext extends AbstractContext {
     @Override
     public Optional<TestInstances> getTestInstances() {
         return Optional.ofNullable(instances);
-    }
-
-    public FeatureInfo getFeature() {
-        return feature;
     }
 }

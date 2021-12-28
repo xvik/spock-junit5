@@ -25,6 +25,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Merges junit extensions lifecycle into spock. Junit extensions executed before any other spock extensions
+ * (only other global spock extensions may be executed before, but they are almost never used).
+ * <p>
  * Implementation based on {@code org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor} and
  * {@code org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor} from junit-jupiter-engine.
  *
@@ -58,12 +61,17 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         };
     }
 
+    /**
+     * Interceptor externalized in order to unify all interceptor registration in one place.
+     *
+     * @return interceptor for fixture methods (setup/cleanup)
+     */
     public IMethodInterceptor getFixtureMethodsInterceptor() {
         return fixtureMethodsInterceptor;
     }
 
     @Override
-    public void interceptSetupSpecMethod(IMethodInvocation invocation) throws Throwable {
+    public void interceptSetupSpecMethod(final IMethodInvocation invocation) throws Throwable {
         junit.beforeAll(context);
         spockLifecycle("setupSpec");
         // no real method call here
@@ -71,7 +79,8 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     }
 
     @Override
-    public void interceptInitializerMethod(IMethodInvocation invocation) throws Throwable {
+    public void interceptInitializerMethod(final IMethodInvocation invocation) throws Throwable {
+        // note that shared init phase is ignored
         spockLifecycle("initialization");
         invocation.proceed();
 
@@ -85,11 +94,12 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
             return;
         }
 
+        // context stored by instance for simplicity (all later hooks would easily resolve it)
         methods.put(instance, methodContext);
     }
 
     @Override
-    public void interceptSetupMethod(IMethodInvocation invocation) throws Throwable {
+    public void interceptSetupMethod(final IMethodInvocation invocation) throws Throwable {
         junit.beforeEach(getMethodContext(invocation));
         spockLifecycle("setup");
         // no real method call here
@@ -97,7 +107,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     }
 
     @Override
-    public void interceptFeatureMethod(IMethodInvocation invocation) throws Throwable {
+    public void interceptFeatureMethod(final IMethodInvocation invocation) throws Throwable {
         spockLifecycle("'" + invocation.getFeature().getDisplayName() + "' execution");
         final MethodContext mcontext = getMethodContext(invocation);
         try {
@@ -124,14 +134,20 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
 
         // pre destroy callbacks support (could be registered on method level)
         junit.instancePreDestroy(mcontext);
+
+        // process closable values in storage
+        mcontext.close();
     }
 
     @Override
-    public void interceptCleanupSpecMethod(IMethodInvocation invocation) throws Throwable {
+    public void interceptCleanupSpecMethod(final IMethodInvocation invocation) throws Throwable {
         spockLifecycle("cleanupSpec");
         // no real method call here
         invocation.proceed();
         junit.afterAll(context);
+
+        // process closable values in storage
+        context.close();
     }
 
     @NotNull
@@ -154,7 +170,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + "." + name);
     }
 
-    private void injectArguments(IMethodInvocation invocation, AbstractContext context) {
+    private void injectArguments(final IMethodInvocation invocation, final AbstractContext context) {
         final Method method = invocation.getMethod().getReflection();
         final Object[] arguments = invocation.getArguments();
         if (method == null || arguments.length == 0) {

@@ -54,6 +54,10 @@ import static org.junit.platform.commons.util.ReflectionUtils.isAssignableTo;
 import static org.junit.platform.commons.util.ReflectionUtils.tryToReadFieldValue;
 
 /**
+ * Extensions recognition logic. Mostly copy of jupiter implementation methods (with slight adoptions) to preserve
+ * exactly the same behaviour. Started as a subset of {@code org.junit.jupiter.engine.descriptor.ExtensionUtils},
+ * but also include some descriptors logic (descriptors concept itself is not required in spock context).
+ *
  * @author Vyacheslav Rusakov
  * @since 30.11.2021
  */
@@ -76,10 +80,14 @@ public class ExtensionUtils {
     );
 
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
+            // support can be added, but what for?
             InvocationInterceptor.class,
+            // impossible to add (spock does not allow this)
             TestInstanceFactory.class,
+            // exception handling support could be added, but is it needed?
             TestExecutionExceptionHandler.class,
             LifecycleMethodExecutionExceptionHandler.class,
+            // support could be added, but this is too specific (will never be required)
             TestWatcher.class
             // TestTemplateInvocationContextProvider not included because it doesn't matter
     );
@@ -120,7 +128,9 @@ public class ExtensionUtils {
      *                  when searching for {@code static} fields in the class
      */
     // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromFields
-    public static void registerExtensionsFromFields(ExtensionRegistry registrar, Class<?> clazz, Object instance) {
+    public static void registerExtensionsFromFields(final ExtensionRegistry registrar,
+                                                    final Class<?> clazz,
+                                                    final Object instance) {
         Preconditions.notNull(registrar, "ExtensionRegistrar must not be null");
         Preconditions.notNull(clazz, "Class must not be null");
 
@@ -138,16 +148,19 @@ public class ExtensionUtils {
                     if (isRegisterExtensionPresent) {
                         tryToReadFieldValue(field, instance).ifSuccess(value -> {
                             Preconditions.condition(value instanceof Extension, () -> String.format(
-                                    "Failed to register extension via @RegisterExtension field [%s]: field value's type [%s] must implement an [%s] API.",
-                                    field, (value != null ? value.getClass().getName() : null), Extension.class.getName()));
+                                    "Failed to register extension via @RegisterExtension field [%s]: field value's "
+                                            + "type [%s] must implement an [%s] API.",
+                                    field, (value != null ? value.getClass().getName() : null),
+                                    Extension.class.getName()));
 
                             if (isExtendWithPresent) {
                                 Class<?> valueType = value.getClass();
                                 extensionTypes.forEach(extensionType -> {
                                     Preconditions.condition(!extensionType.equals(valueType),
                                             () -> String.format("Failed to register extension via field [%s]. "
-                                                            + "The field registers an extension of type [%s] via @RegisterExtension and @ExtendWith, "
-                                                            + "but only one registration of a given extension type is permitted.",
+                                                            + "The field registers an extension of type [%s] via "
+                                                            + "@RegisterExtension and @ExtendWith, but only one "
+                                                            + "registration of a given extension type is permitted.",
                                                     field, valueType.getName()));
                                 });
                             }
@@ -168,24 +181,23 @@ public class ExtensionUtils {
      * @param executable the constructor or method whose parameters should be searched; never {@code null}
      */
     // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromExecutableParameters
-    public static void registerExtensionsFromExecutableParameters(ExtensionRegistry registrar, Executable executable) {
+    public static void registerExtensionsFromExecutableParameters(final ExtensionRegistry registrar,
+                                                                  final Executable executable) {
         Preconditions.notNull(registrar, "ExtensionRegistrar must not be null");
         Preconditions.notNull(executable, "Executable must not be null");
 
         AtomicInteger index = new AtomicInteger();
 
-        // @formatter:off
         Arrays.stream(executable.getParameters())
                 .map(parameter -> findRepeatableAnnotations(parameter, index.getAndIncrement(), ExtendWith.class))
                 .flatMap(ExtensionUtils::streamExtensionTypes)
                 .forEach(registrar::registerExtension);
-        // @formatter:on
     }
 
     // based on org.junit.jupiter.engine.execution.ExecutableInvoker.resolveParameter
-    public static Object resolveParameter(ParameterContext parameterContext,
-                                          Executable executable,
-                                          AbstractContext context) {
+    public static Object resolveParameter(final ParameterContext parameterContext,
+                                          final Executable executable,
+                                          final AbstractContext context) {
         try {
             final List<ParameterResolver> exts = context.getRegistry().stream(ParameterResolver.class)
                     .filter(resolver -> resolver.supportsParameter(parameterContext, context))
@@ -232,10 +244,10 @@ public class ExtensionUtils {
         }
     }
 
-    private static void validateResolvedType(Parameter parameter,
-                                             Object value,
-                                             Executable executable,
-                                             ParameterResolver resolver) {
+    private static void validateResolvedType(final Parameter parameter,
+                                             final Object value,
+                                             final Executable executable,
+                                             final ParameterResolver resolver) {
 
         Class<?> type = parameter.getType();
 
@@ -261,11 +273,11 @@ public class ExtensionUtils {
 
     private static final Comparator<Field> orderComparator = Comparator.comparingInt(ExtensionUtils::getOrder);
 
-    private static int getOrder(Field field) {
+    private static int getOrder(final Field field) {
         return findAnnotation(field, Order.class).map(Order::value).orElse(Order.DEFAULT);
     }
 
-    private static Stream<Class<? extends Extension>> streamExtensionTypes(AnnotatedElement annotatedElement) {
+    private static Stream<Class<? extends Extension>> streamExtensionTypes(final AnnotatedElement annotatedElement) {
         return streamExtensionTypes(findRepeatableAnnotations(annotatedElement, ExtendWith.class));
     }
 

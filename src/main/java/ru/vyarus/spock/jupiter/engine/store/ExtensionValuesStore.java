@@ -20,10 +20,10 @@ import static org.junit.platform.commons.util.ReflectionUtils.getWrapperType;
 import static org.junit.platform.commons.util.ReflectionUtils.isAssignableTo;
 
 /**
- * {@code ExtensionValuesStore} is used inside implementations of
- * {@link ExtensionContext} to store and retrieve values.
+ * Used inside implementations of {@link ExtensionContext} to store and retrieve values.
  * <p>
- * Copy of {@code org.junit.jupiter.engine.execution.ExtensionValuesStore} from junit-jupiter-engine.
+ * Copy of {@code org.junit.jupiter.engine.execution.ExtensionValuesStore} from junit-jupiter-engine (because exactly
+ * the same behaviour is required).
  *
  * @author Vyacheslav Rusakov
  * @since 20.12.2021
@@ -37,7 +37,7 @@ public class ExtensionValuesStore {
     private final ConcurrentMap<CompositeKey, StoredValue> storedValues = new ConcurrentHashMap<>(4);
     private final ExtensionValuesStore parentStore;
 
-    public ExtensionValuesStore(ExtensionValuesStore parentStore) {
+    public ExtensionValuesStore(final ExtensionValuesStore parentStore) {
         this.parentStore = parentStore;
     }
 
@@ -48,27 +48,29 @@ public class ExtensionValuesStore {
      * does not close values in parent stores.
      */
     public void closeAllStoredCloseableValues() {
-        ThrowableCollector throwableCollector = new OpenTest4JAwareThrowableCollector();
-        storedValues.values().stream() //
-                .filter(storedValue -> storedValue.evaluateSafely() instanceof ExtensionContext.Store.CloseableResource) //
-                .sorted(REVERSE_INSERT_ORDER) //
-                .map(storedValue -> (ExtensionContext.Store.CloseableResource) storedValue.evaluate()) //
+        final ThrowableCollector throwableCollector = new OpenTest4JAwareThrowableCollector();
+        storedValues.values().stream()
+                .filter(storedValue -> storedValue.evaluateSafely() instanceof ExtensionContext.Store.CloseableResource)
+                .sorted(REVERSE_INSERT_ORDER)
+                .map(storedValue -> (ExtensionContext.Store.CloseableResource) storedValue.evaluate())
                 .forEach(resource -> throwableCollector.execute(resource::close));
         throwableCollector.assertEmpty();
     }
 
-    Object get(ExtensionContext.Namespace namespace, Object key) {
-        StoredValue storedValue = getStoredValue(new CompositeKey(namespace, key));
+    protected Object get(final ExtensionContext.Namespace namespace, final Object key) {
+        final StoredValue storedValue = getStoredValue(new CompositeKey(namespace, key));
         return (storedValue != null ? storedValue.evaluate() : null);
     }
 
-    <T> T get(ExtensionContext.Namespace namespace, Object key, Class<T> requiredType) {
-        Object value = get(namespace, key);
+    protected <T> T get(final ExtensionContext.Namespace namespace, final Object key, final Class<T> requiredType) {
+        final Object value = get(namespace, key);
         return castToRequiredType(key, value, requiredType);
     }
 
-    <K, V> Object getOrComputeIfAbsent(ExtensionContext.Namespace namespace, K key, Function<K, V> defaultCreator) {
-        CompositeKey compositeKey = new CompositeKey(namespace, key);
+    protected <K, V> Object getOrComputeIfAbsent(final ExtensionContext.Namespace namespace,
+                                                 final K key,
+                                                 final Function<K, V> defaultCreator) {
+        final CompositeKey compositeKey = new CompositeKey(namespace, key);
         StoredValue storedValue = getStoredValue(compositeKey);
         if (storedValue == null) {
             StoredValue newValue = storedValue(new MemoizingSupplier(() -> defaultCreator.apply(key)));
@@ -77,31 +79,33 @@ public class ExtensionValuesStore {
         return storedValue.evaluate();
     }
 
-    <K, V> V getOrComputeIfAbsent(ExtensionContext.Namespace namespace, K key, Function<K, V> defaultCreator, Class<V> requiredType) {
-        Object value = getOrComputeIfAbsent(namespace, key, defaultCreator);
+    protected <K, V> V getOrComputeIfAbsent(final ExtensionContext.Namespace namespace,
+                                            final K key, Function<K, V> defaultCreator,
+                                            final Class<V> requiredType) {
+        final Object value = getOrComputeIfAbsent(namespace, key, defaultCreator);
         return castToRequiredType(key, value, requiredType);
     }
 
-    void put(ExtensionContext.Namespace namespace, Object key, Object value) {
+    protected void put(final ExtensionContext.Namespace namespace, final Object key, final Object value) {
         storedValues.put(new CompositeKey(namespace, key), storedValue(() -> value));
     }
 
-    private StoredValue storedValue(Supplier<Object> value) {
+    private StoredValue storedValue(final Supplier<Object> value) {
         return new StoredValue(insertOrderSequence.getAndIncrement(), value);
     }
 
-    Object remove(ExtensionContext.Namespace namespace, Object key) {
+    protected Object remove(final ExtensionContext.Namespace namespace, final Object key) {
         StoredValue previous = storedValues.remove(new CompositeKey(namespace, key));
         return (previous != null ? previous.evaluate() : null);
     }
 
-    <T> T remove(ExtensionContext.Namespace namespace, Object key, Class<T> requiredType) {
-        Object value = remove(namespace, key);
+    protected <T> T remove(final ExtensionContext.Namespace namespace, final Object key, final Class<T> requiredType) {
+        final Object value = remove(namespace, key);
         return castToRequiredType(key, value, requiredType);
     }
 
-    private StoredValue getStoredValue(CompositeKey compositeKey) {
-        StoredValue storedValue = storedValues.get(compositeKey);
+    private StoredValue getStoredValue(final CompositeKey compositeKey) {
+        final StoredValue storedValue = storedValues.get(compositeKey);
         if (storedValue != null) {
             return storedValue;
         }
@@ -112,7 +116,7 @@ public class ExtensionValuesStore {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T castToRequiredType(Object key, Object value, Class<T> requiredType) {
+    private <T> T castToRequiredType(final Object key, final Object value, final Class<T> requiredType) {
         if (value == null) {
             return null;
         }
@@ -122,9 +126,9 @@ public class ExtensionValuesStore {
             }
             return requiredType.cast(value);
         }
-        // else
         throw new ExtensionContextException(
-                String.format("Object stored under key [%s] is not of required type [%s]", key, requiredType.getName()));
+                String.format("Object stored under key [%s] is not of required type [%s]",
+                        key, requiredType.getName()));
     }
 
     private static class CompositeKey {
@@ -132,20 +136,20 @@ public class ExtensionValuesStore {
         private final ExtensionContext.Namespace namespace;
         private final Object key;
 
-        private CompositeKey(ExtensionContext.Namespace namespace, Object key) {
+        private CompositeKey(final ExtensionContext.Namespace namespace, final Object key) {
             this.namespace = namespace;
             this.key = key;
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if (this == o) {
                 return true;
             }
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            CompositeKey that = (CompositeKey) o;
+            final CompositeKey that = (CompositeKey) o;
             return this.namespace.equals(that.namespace) && this.key.equals(that.key);
         }
 
@@ -161,7 +165,7 @@ public class ExtensionValuesStore {
         private final int order;
         private final Supplier<Object> supplier;
 
-        public StoredValue(int order, Supplier<Object> supplier) {
+        public StoredValue(final int order, final Supplier<Object> supplier) {
             this.order = order;
             this.supplier = supplier;
         }
@@ -189,7 +193,7 @@ public class ExtensionValuesStore {
         private final Supplier<Object> delegate;
         private volatile Object value = NO_VALUE_SET;
 
-        private MemoizingSupplier(Supplier<Object> delegate) {
+        private MemoizingSupplier(final Supplier<Object> delegate) {
             this.delegate = delegate;
         }
 
@@ -227,7 +231,5 @@ public class ExtensionValuesStore {
                 this.exception = exception;
             }
         }
-
     }
-
 }

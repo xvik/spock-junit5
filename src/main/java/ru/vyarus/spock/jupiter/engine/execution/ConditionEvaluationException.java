@@ -3,8 +3,7 @@ package ru.vyarus.spock.jupiter.engine.execution;
 import org.junit.platform.commons.JUnitException;
 
 /**
- * Thrown if an error is encountered while evaluating an
- * {@link org.junit.jupiter.api.extension.ExecutionCondition}.
+ * Thrown if an error is encountered while evaluating an {@link org.junit.jupiter.api.extension.ExecutionCondition}.
  * <p>
  * Copy of {@code org.junit.jupiter.engine.execution.ConditionEvaluationException}.
  *
@@ -15,7 +14,7 @@ public class ConditionEvaluationException extends JUnitException {
 
     private static final long serialVersionUID = 1L;
 
-    public ConditionEvaluationException(String message, Throwable cause) {
+    public ConditionEvaluationException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

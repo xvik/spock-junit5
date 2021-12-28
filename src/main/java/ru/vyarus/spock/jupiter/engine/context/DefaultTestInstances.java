@@ -10,6 +10,9 @@ import java.util.ListIterator;
 import java.util.Optional;
 
 /**
+ * Default {@link TestInstances} implementation. Note that in context of spock there can't be a chain of instances
+ * (because there are no nested tests), so there will always be only one instance.
+ * <p>
  * Copy of {@code org.junit.jupiter.engine.execution.DefaultTestInstances} from junit-jupiter-engine.
  *
  * @author Vyacheslav Rusakov
@@ -17,19 +20,19 @@ import java.util.Optional;
  */
 public class DefaultTestInstances implements TestInstances {
 
-    public static DefaultTestInstances of(Object instance) {
+    public static DefaultTestInstances of(final Object instance) {
         return new DefaultTestInstances(Collections.singletonList(instance));
     }
 
-    public static DefaultTestInstances of(TestInstances testInstances, Object instance) {
-        List<Object> allInstances = new ArrayList<>(testInstances.getAllInstances());
+    public static DefaultTestInstances of(final TestInstances testInstances, final Object instance) {
+        final List<Object> allInstances = new ArrayList<>(testInstances.getAllInstances());
         allInstances.add(instance);
         return new DefaultTestInstances(Collections.unmodifiableList(allInstances));
     }
 
     private final List<Object> instances;
 
-    private DefaultTestInstances(List<Object> instances) {
+    private DefaultTestInstances(final List<Object> instances) {
         this.instances = Preconditions.notEmpty(instances, "instances must not be empty");
     }
 
@@ -49,16 +52,15 @@ public class DefaultTestInstances implements TestInstances {
     }
 
     @Override
-    public <T> Optional<T> findInstance(Class<T> requiredType) {
+    public <T> Optional<T> findInstance(final Class<T> requiredType) {
         Preconditions.notNull(requiredType, "requiredType must not be null");
-        ListIterator<Object> iterator = instances.listIterator(instances.size());
+        final ListIterator<Object> iterator = instances.listIterator(instances.size());
         while (iterator.hasPrevious()) {
-            Object instance = iterator.previous();
+            final Object instance = iterator.previous();
             if (requiredType.isInstance(instance)) {
                 return Optional.of(requiredType.cast(instance));
             }
         }
         return Optional.empty();
     }
-
 }

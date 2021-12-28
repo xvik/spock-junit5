@@ -16,33 +16,35 @@ public class NamespaceAwareStore implements ExtensionContext.Store {
     private final ExtensionValuesStore valuesStore;
     private final ExtensionContext.Namespace namespace;
 
-    public NamespaceAwareStore(ExtensionValuesStore valuesStore, ExtensionContext.Namespace namespace) {
+    public NamespaceAwareStore(final ExtensionValuesStore valuesStore, final ExtensionContext.Namespace namespace) {
         this.valuesStore = valuesStore;
         this.namespace = namespace;
     }
 
     @Override
-    public Object get(Object key) {
+    public Object get(final Object key) {
         Preconditions.notNull(key, "key must not be null");
         return this.valuesStore.get(this.namespace, key);
     }
 
     @Override
-    public <T> T get(Object key, Class<T> requiredType) {
+    public <T> T get(final Object key, final Class<T> requiredType) {
         Preconditions.notNull(key, "key must not be null");
         Preconditions.notNull(requiredType, "requiredType must not be null");
         return this.valuesStore.get(this.namespace, key, requiredType);
     }
 
     @Override
-    public <K, V> Object getOrComputeIfAbsent(K key, Function<K, V> defaultCreator) {
+    public <K, V> Object getOrComputeIfAbsent(final K key, final Function<K, V> defaultCreator) {
         Preconditions.notNull(key, "key must not be null");
         Preconditions.notNull(defaultCreator, "defaultCreator function must not be null");
         return this.valuesStore.getOrComputeIfAbsent(this.namespace, key, defaultCreator);
     }
 
     @Override
-    public <K, V> V getOrComputeIfAbsent(K key, Function<K, V> defaultCreator, Class<V> requiredType) {
+    public <K, V> V getOrComputeIfAbsent(final K key,
+                                         final Function<K, V> defaultCreator,
+                                         final Class<V> requiredType) {
         Preconditions.notNull(key, "key must not be null");
         Preconditions.notNull(defaultCreator, "defaultCreator function must not be null");
         Preconditions.notNull(requiredType, "requiredType must not be null");
@@ -50,19 +52,19 @@ public class NamespaceAwareStore implements ExtensionContext.Store {
     }
 
     @Override
-    public void put(Object key, Object value) {
+    public void put(final Object key, final Object value) {
         Preconditions.notNull(key, "key must not be null");
         this.valuesStore.put(this.namespace, key, value);
     }
 
     @Override
-    public Object remove(Object key) {
+    public Object remove(final Object key) {
         Preconditions.notNull(key, "key must not be null");
         return this.valuesStore.remove(this.namespace, key);
     }
 
     @Override
-    public <T> T remove(Object key, Class<T> requiredType) {
+    public <T> T remove(final Object key, final Class<T> requiredType) {
         Preconditions.notNull(key, "key must not be null");
         Preconditions.notNull(requiredType, "requiredType must not be null");
         return this.valuesStore.remove(this.namespace, key, requiredType);

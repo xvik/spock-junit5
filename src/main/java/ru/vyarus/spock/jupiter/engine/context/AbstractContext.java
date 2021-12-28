@@ -19,13 +19,19 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * Base class for extensions execution context. Based on
- * {@code org.junit.jupiter.engine.descriptor.AbstractExtensionContext} from junit-jupiter-engine.
+ * Extension context object is passed to all extensions as parameter. Context is hierarchical: first level used
+ * for spec (class level) and one context for each spec method. In case of spock data-driven methods, each iteration
+ * will have a fresh method (feature) context (because extension instances must be renewed - each iteration is a
+ * separate test run).
+ * <p>
+ * Based on
+ * {@code org.junit.jupiter.engine.descriptor.AbstractExtensionContext} from junit-jupiter-engine. Note that original
+ * jupiter implementation contains much more context types - they are not needed in context of spock.
  *
  * @author Vyacheslav Rusakov
  * @since 02.12.2021
  */
-public abstract class AbstractContext implements ExtensionContext {
+public abstract class AbstractContext implements ExtensionContext, AutoCloseable {
 
     protected final ExtensionContext parent;
     // this should not be there, but in case of spock it's more convenient to put it here
@@ -92,25 +98,25 @@ public abstract class AbstractContext implements ExtensionContext {
     }
 
     @Override
-    public <T> Optional<T> getConfigurationParameter(String key, Function<String, T> transformer) {
+    public <T> Optional<T> getConfigurationParameter(final String key, final Function<String, T> transformer) {
         // not supported (maybe need emulation)
         return Optional.empty();
     }
 
     @Override
-    public void publishReportEntry(Map<String, String> map) {
+    public void publishReportEntry(final Map<String, String> map) {
         // execution listener not implemented
     }
 
     @Override
-    public Store getStore(Namespace namespace) {
+    public Store getStore(final Namespace namespace) {
         Preconditions.notNull(namespace, "Namespace must not be null");
         return new NamespaceAwareStore(this.valuesStore, namespace);
     }
 
     @Override
     public ExecutionMode getExecutionMode() {
-        org.spockframework.runtime.model.parallel.ExecutionMode executionMode = spec.getExecutionMode().get();
+        final org.spockframework.runtime.model.parallel.ExecutionMode executionMode = spec.getExecutionMode().get();
         return ExecutionMode.valueOf(executionMode.name());
     }
 
@@ -129,7 +135,13 @@ public abstract class AbstractContext implements ExtensionContext {
         return collector;
     }
 
-    private ExtensionValuesStore createStore(ExtensionContext parent) {
+    @Override
+    public void close() throws Exception {
+        valuesStore.closeAllStoredCloseableValues();
+    }
+
+    // org.junit.jupiter.engine.descriptor.AbstractExtensionContext.createStore
+    private ExtensionValuesStore createStore(final ExtensionContext parent) {
         ExtensionValuesStore parentStore = null;
         if (parent != null) {
             parentStore = ((AbstractContext) parent).valuesStore;

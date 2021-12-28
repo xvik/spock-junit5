@@ -22,6 +22,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Executes registered extensions.
+ * <p>
+ * Mostly a copy of {@code ClassBasedTestDescriptor} and {@code TestMethodTestDescriptor} logic.
+ * <p>
+ * Note that in jupiter all such logic is aggregated in descriptors because they have to do all the work of methods
+ * execution. But spock do most of it already and that's why descriptors concept wasn't used at all. Essentially,
+ * this class contains all required code (plus {@link ru.vyarus.spock.jupiter.engine.ExtensionUtils}).
+ * <p>
+ * Contexts are more equal to jupiter analog, but in context of spock much less context types is required (and
+ * overall amount of possible execution scenarios is less than in jupiter because there is no templates and
+ * nested tests).
+ * <p>
+ * {@link ThrowableCollector} concept is very limited comparing to jupiter: there it used for everything, because
+ * descriptors control all flow, but here, collectors used only for exceptions detection in extensions
+ * (and to make callbacks processing logic more equal to the original source). Also, that's why exception handler
+ * extensions are not supported (it is possible, but not so important).
+ *
  * @author Vyacheslav Rusakov
  * @since 28.12.2021
  */
@@ -40,7 +57,7 @@ public class JunitApiExecutor {
     }
 
     // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeTestInstancePostProcessors
-    public void instancePostProcessors(ClassContext context, Object instance) {
+    public void instancePostProcessors(final ClassContext context, final Object instance) {
         context.getCollector().execute(() ->
                 getExtensions(context, TestInstancePostProcessor.class).forEach(
                         extension -> executeAndMaskThrowable(() ->
@@ -128,7 +145,7 @@ public class JunitApiExecutor {
         return exts;
     }
 
-    private void executeAndMaskThrowable(Executable executable) {
+    private void executeAndMaskThrowable(final Executable executable) {
         try {
             executable.execute();
         } catch (Throwable throwable) {

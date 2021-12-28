@@ -20,7 +20,10 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Stream.concat;
 
 /**
- * Based on org.junit.jupiter.engine.extension.MutableExtensionRegistry from junit-jupiter-engine (5.8).
+ * Holds all found junit extensions for target context. Registry is hierarchical: first spec-level registry created and
+ * then feature-level registries. Extensions lookup performed by top-most registry and then by parent (if exists).
+ * <p>
+ * Based on {@code org.junit.jupiter.engine.extension.MutableExtensionRegistry} from junit-jupiter-engine (5.8).
  * Does not support auto-detected, default and synthetic extensions (no need).
  *
  * @author Vyacheslav Rusakov

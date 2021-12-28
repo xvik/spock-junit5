@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Copy of {@code org.junit.jupiter.engine.execution.DefaultParameterContext} from junit-jupiter-engine (5.8)
+ * {@link ParameterContext} implementation (used for {@link org.junit.jupiter.api.extension.ParameterResolver}
+ * extensions to resolve method parameters).
+ * <p>
+ * Copy of {@code org.junit.jupiter.engine.execution.DefaultParameterContext} from junit-jupiter-engine (5.8).
  *
  * @author Vyacheslav Rusakov
  * @since 24.12.2021
@@ -22,7 +25,7 @@ public class DefaultParameterContext implements ParameterContext {
     private final int index;
     private final Optional<Object> target;
 
-    public DefaultParameterContext(Parameter parameter, int index, Optional<Object> target) {
+    public DefaultParameterContext(final Parameter parameter, final int index, final Optional<Object> target) {
         Preconditions.condition(index >= 0, "index must be greater than or equal to zero");
         this.parameter = Preconditions.notNull(parameter, "parameter must not be null");
         this.index = index;
@@ -45,17 +48,17 @@ public class DefaultParameterContext implements ParameterContext {
     }
 
     @Override
-    public boolean isAnnotated(Class<? extends Annotation> annotationType) {
+    public boolean isAnnotated(final Class<? extends Annotation> annotationType) {
         return AnnotationUtils.isAnnotated(this.parameter, this.index, annotationType);
     }
 
     @Override
-    public <A extends Annotation> Optional<A> findAnnotation(Class<A> annotationType) {
+    public <A extends Annotation> Optional<A> findAnnotation(final Class<A> annotationType) {
         return AnnotationUtils.findAnnotation(this.parameter, this.index, annotationType);
     }
 
     @Override
-    public <A extends Annotation> List<A> findRepeatableAnnotations(Class<A> annotationType) {
+    public <A extends Annotation> List<A> findRepeatableAnnotations(final Class<A> annotationType) {
         return AnnotationUtils.findRepeatableAnnotations(this.parameter, this.index, annotationType);
     }
 
