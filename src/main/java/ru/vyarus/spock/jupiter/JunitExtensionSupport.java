@@ -1,8 +1,5 @@
 package ru.vyarus.spock.jupiter;
 
-import org.junit.jupiter.api.extension.ConditionEvaluationResult;
-import org.junit.platform.commons.logging.Logger;
-import org.junit.platform.commons.logging.LoggerFactory;
 import org.spockframework.runtime.extension.IGlobalExtension;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
@@ -16,8 +13,6 @@ import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
  * @since 25.11.2021
  */
 public class JunitExtensionSupport implements IGlobalExtension {
-
-    private final Logger logger = LoggerFactory.getLogger(JunitExtensionSupport.class);
 
     @Override
     public void visitSpec(final SpecInfo spec) {

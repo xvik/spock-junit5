@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
+import org.junit.jupiter.api.extension.LifecycleMethodExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
@@ -78,6 +79,7 @@ public class ExtensionUtils {
             InvocationInterceptor.class,
             TestInstanceFactory.class,
             TestExecutionExceptionHandler.class,
+            LifecycleMethodExecutionExceptionHandler.class,
             TestWatcher.class
             // TestTemplateInvocationContextProvider not included because it doesn't matter
     );
