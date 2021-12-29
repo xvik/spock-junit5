@@ -42,7 +42,7 @@ public class MethodContext extends AbstractContext {
 
     @Override
     public Optional<Method> getTestMethod() {
-        return Optional.of((Method) feature.getReflection());
+        return Optional.of(feature.getFeatureMethod().getReflection());
     }
 
     @Override
