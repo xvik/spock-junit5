@@ -20,6 +20,7 @@ class SpockContextTest extends AbstractTest {
                                   "class.exec mode: SAME_THREAD",
                                   "class.exception: false",
                                   "class.test class: class ru.vyarus.spock.jupiter.test.SpockContext",
+                                  "class.test method: false",
                                   "class.tags: []",
                                   "class.test instance: false",
                                   "class.test instances: false",

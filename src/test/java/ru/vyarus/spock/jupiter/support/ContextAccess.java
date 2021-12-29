@@ -22,6 +22,7 @@ public class ContextAccess implements BeforeAllCallback, BeforeEachCallback {
         ActionHolder.add("class.exec mode: " + context.getExecutionMode());
         ActionHolder.add("class.exception: " + context.getExecutionException().isPresent());
         ActionHolder.add("class.test class: " + context.getRequiredTestClass());
+        ActionHolder.add("class.test method: " + context.getTestMethod().isPresent());
         ActionHolder.add("class.tags: " + context.getTags());
         ActionHolder.add("class.test instance: " + context.getTestInstance().isPresent());
         ActionHolder.add("class.test instances: " + context.getTestInstances().isPresent());

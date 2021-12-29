@@ -25,6 +25,7 @@ public class JupiterContextTest extends AbstractJupiterTest {
                         "class.exec mode: SAME_THREAD",
                         "class.exception: false",
                         "class.test class: class playground.tests.JupiterContext",
+                        "class.test method: false",
                         "class.tags: []",
                         "class.test instance: false",
                         "class.test instances: false",
