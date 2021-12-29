@@ -1,5 +1,6 @@
 package playground;
 
+import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import ru.vyarus.spock.jupiter.support.ActionHolder;
 
@@ -27,9 +28,14 @@ public abstract class AbstractJupiterTest {
                     .engine("junit-jupiter")
                     .configurationParameter("junit.jupiter.conditions.deactivate", "org.junit.*DisabledCondition")
                     .selectors(selectClass(test))
-                    .execute()
-                    .containerEvents()
-                    .assertStatistics(stats -> stats.failed(0).aborted(0));
+                    .execute().allEvents().failed().stream()
+                    // exceptions appended to events log
+                    .forEach(event -> {
+                        Throwable err = event.getPayload(TestExecutionResult.class).get().getThrowable().get();
+                        ActionHolder.add("Error: (" + err.getClass().getSimpleName() + ") " + err.getMessage());
+                    });
+//                    .containerEvents()
+//                    .assertStatistics(stats -> stats.failed(0).aborted(0));
             return ActionHolder.getState();
         } finally {
             ActionHolder.cleanup();
