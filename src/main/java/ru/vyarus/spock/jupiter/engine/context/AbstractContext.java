@@ -117,7 +117,9 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
 
     @Override
     public ExecutionMode getExecutionMode() {
-        final org.spockframework.runtime.model.parallel.ExecutionMode executionMode = spec.getExecutionMode().get();
+        final org.spockframework.runtime.model.parallel.ExecutionMode executionMode = spec.getExecutionMode()
+                // default value not set in spock
+                .orElse(org.spockframework.runtime.model.parallel.ExecutionMode.SAME_THREAD);
         return ExecutionMode.valueOf(executionMode.name());
     }
 

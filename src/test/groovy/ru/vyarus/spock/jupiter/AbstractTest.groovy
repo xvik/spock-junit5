@@ -30,6 +30,8 @@ abstract class AbstractTest extends Specification {
         try {
             def runner = new EmbeddedSpecRunner()
             runner.runClass(test)
+                    .containerEvents()
+                    .assertStatistics(stats -> stats.failed(0).aborted(0));
             return ActionHolder.getState();
         } finally {
             ActionHolder.cleanup();

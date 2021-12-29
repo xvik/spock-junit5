@@ -23,7 +23,7 @@ public class ClassContext extends AbstractContext {
 
     @Override
     public String getUniqueId() {
-        return "class:" + spec.getReflection().getName();
+        return "[class:" + spec.getReflection().getName() + "]";
     }
 
     @Override

@@ -27,7 +27,9 @@ public abstract class AbstractJupiterTest {
                     .engine("junit-jupiter")
                     .configurationParameter("junit.jupiter.conditions.deactivate", "org.junit.*DisabledCondition")
                     .selectors(selectClass(test))
-                    .execute();
+                    .execute()
+                    .containerEvents()
+                    .assertStatistics(stats -> stats.failed(0).aborted(0));
             return ActionHolder.getState();
         } finally {
             ActionHolder.cleanup();

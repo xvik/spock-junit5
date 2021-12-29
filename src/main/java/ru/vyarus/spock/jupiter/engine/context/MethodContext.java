@@ -32,7 +32,7 @@ public class MethodContext extends AbstractContext {
 
     @Override
     public String getUniqueId() {
-        return parent.getUniqueId() + "#" + feature.getFeatureMethod().getName();
+        return parent.getUniqueId() + "/[method:" + feature.getFeatureMethod().getName() + "]";
     }
 
     @Override
