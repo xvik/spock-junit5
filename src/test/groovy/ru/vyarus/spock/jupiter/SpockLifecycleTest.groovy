@@ -2,6 +2,7 @@ package ru.vyarus.spock.jupiter
 
 import ru.vyarus.spock.jupiter.test.SpockBaseLifecycle
 import ru.vyarus.spock.jupiter.test.SpockDoubleLifecycle
+import ru.vyarus.spock.jupiter.test.SpockFieldExtensions
 import ru.vyarus.spock.jupiter.test.SpockSetupAllMethodExtensions
 import ru.vyarus.spock.jupiter.test.SpockSetupMethodExtensions
 import ru.vyarus.spock.jupiter.test.SpockTestMethodExtensions
@@ -91,5 +92,21 @@ class SpockLifecycleTest extends AbstractTest {
                                                 "AfterTestExecutionCallback-2",
                                                 "AfterEachCallback-2",
                                                 "AfterAllCallback-2"]
+    }
+
+    def "Check field extensions"() {
+
+        expect: 'field extensions recognized'
+        runTest(SpockFieldExtensions) == ["BeforeAllCallback",
+                                          "BeforeEachCallback",
+                                          "BeforeEachCallback-2",
+                                          "BeforeTestExecutionCallback",
+                                          "BeforeTestExecutionCallback-2",
+                                          "test.body",
+                                          "AfterTestExecutionCallback-2",
+                                          "AfterTestExecutionCallback",
+                                          "AfterEachCallback-2",
+                                          "AfterEachCallback",
+                                          "AfterAllCallback"]
     }
 }
