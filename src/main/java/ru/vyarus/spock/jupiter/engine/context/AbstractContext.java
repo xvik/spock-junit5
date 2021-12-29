@@ -92,7 +92,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     }
 
     @Override
-    public Optional<String> getConfigurationParameter(String key) {
+    public Optional<String> getConfigurationParameter(final String key) {
         // not supported (maybe need emulation)
         return Optional.empty();
     }
@@ -104,6 +104,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     }
 
     @Override
+    @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
     public void publishReportEntry(final Map<String, String> map) {
         // execution listener not implemented
     }

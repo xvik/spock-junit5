@@ -11,6 +11,7 @@ import java.util.function.Function;
  * @author Vyacheslav Rusakov
  * @since 22.12.2021
  */
+@SuppressWarnings({"checkstyle:MultipleStringLiterals", "PMD.AvoidDuplicateLiterals"})
 public class NamespaceAwareStore implements ExtensionContext.Store {
 
     private final ExtensionValuesStore valuesStore;

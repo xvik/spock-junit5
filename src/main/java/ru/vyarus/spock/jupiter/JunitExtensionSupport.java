@@ -52,7 +52,7 @@ import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
  * </ul>
  * <p>
  * Spock's shared state is not used: don't mark {@link org.junit.jupiter.api.extension.RegisterExtension}
- * extensions with {@link @Shared} - they will still be processed as instance-level extensions. Use static fields
+ * extensions with {@code @Shared} - they will still be processed as instance-level extensions. Use static fields
  * to declare spec-wide extensions (same as in jupiter).
  *
  * @author Vyacheslav Rusakov

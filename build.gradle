@@ -78,9 +78,6 @@ afterReleaseBuild {
     }
 }
 
-// todo temporary
-quality.strict = false
-
 test {
     useJUnitPlatform()
     testLogging {

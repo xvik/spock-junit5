@@ -122,12 +122,12 @@ public class JunitApiExecutor {
         collector.assertEmpty();
     }
 
-    private <T extends Extension> List<T> getExtensions(final AbstractContext context, final Class<T> type) {
-        return getExtensions(context, type, false);
-    }
-
     private <T extends Extension> List<T> getReversedExtensions(final AbstractContext context, final Class<T> type) {
         return getExtensions(context, type, true);
+    }
+
+    private <T extends Extension> List<T> getExtensions(final AbstractContext context, final Class<T> type) {
+        return getExtensions(context, type, false);
     }
 
     private <T extends Extension> List<T> getExtensions(final AbstractContext context,

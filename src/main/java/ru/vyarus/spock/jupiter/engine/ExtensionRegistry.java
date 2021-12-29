@@ -50,7 +50,7 @@ public class ExtensionRegistry {
      * @param extensionType the type of {@link Extension} to stream
      * @see #getReversedExtensions(Class)
      */
-    public <E extends Extension> Stream<E> stream(Class<E> extensionType) {
+    public <E extends Extension> Stream<E> stream(final Class<E> extensionType) {
         if (this.parent == null) {
             return streamLocal(extensionType);
         }
@@ -65,7 +65,7 @@ public class ExtensionRegistry {
      * @see #getReversedExtensions(Class)
      * @see #stream(Class)
      */
-    public <E extends Extension> List<E> getExtensions(Class<E> extensionType) {
+    public <E extends Extension> List<E> getExtensions(final Class<E> extensionType) {
         return stream(extensionType).collect(toCollection(ArrayList::new));
     }
 
@@ -77,8 +77,8 @@ public class ExtensionRegistry {
      * @see #getExtensions(Class)
      * @see #stream(Class)
      */
-    public <E extends Extension> List<E> getReversedExtensions(Class<E> extensionType) {
-        List<E> extensions = getExtensions(extensionType);
+    public <E extends Extension> List<E> getReversedExtensions(final Class<E> extensionType) {
+        final List<E> extensions = getExtensions(extensionType);
         Collections.reverse(extensions);
         return extensions;
     }
@@ -93,7 +93,7 @@ public class ExtensionRegistry {
      *
      * @param extensionType the type of extension to register
      */
-    public void registerExtension(Class<? extends Extension> extensionType) {
+    public void registerExtension(final Class<? extends Extension> extensionType) {
         if (!isAlreadyRegistered(extensionType)) {
             registerExtension(ReflectionUtils.newInstance(extensionType), null);
         }
@@ -119,21 +119,21 @@ public class ExtensionRegistry {
      * @param extension the extension to register; never {@code null}
      * @param source    the source of the extension
      */
-    public void registerExtension(Extension extension, Object source) {
+    public void registerExtension(final Extension extension, final Object source) {
         Preconditions.notNull(extension, "Extension must not be null");
 
         final Class<? extends Extension> type = extension.getClass();
         validateExtensionType(type);
 
-        logger.trace(
-                () -> String.format("Registering extension [%s]%s", extension, buildSourceInfo(source)));
+        logger.trace(() -> String.format("Registering extension [%s]%s", extension, buildSourceInfo(source)));
 
         this.registeredExtensions.add(extension);
         this.registeredExtensionTypes.add(type);
     }
 
+    @SuppressWarnings("checkstyle:MultipleStringLiterals")
     private void validateExtensionType(final Class<? extends Extension> extension) {
-        int supported = (int) ExtensionUtils.SUPPORTED_EXTENSIONS.stream()
+        final int supported = (int) ExtensionUtils.SUPPORTED_EXTENSIONS.stream()
                 .filter(ext -> ext.isAssignableFrom(extension))
                 .count();
 
@@ -157,23 +157,26 @@ public class ExtensionRegistry {
         }
     }
 
-    private String buildSourceInfo(Object source) {
+    private String buildSourceInfo(final Object source) {
         if (source == null) {
             return "";
         }
+        final String res;
         if (source instanceof Member) {
-            Member member = (Member) source;
-            Object type = (member instanceof Method ? "method" : "field");
-            source = String.format("%s %s.%s", type, member.getDeclaringClass().getName(), member.getName());
+            final Member member = (Member) source;
+            final Object type = (member instanceof Method ? "method" : "field");
+            res = String.format("%s %s.%s", type, member.getDeclaringClass().getName(), member.getName());
+        } else {
+            res = source.toString();
         }
-        return " from source [" + source + "]";
+        return " from source [" + res + "]";
     }
 
     /**
      * Determine if the supplied type is already registered in this registry or in a
      * parent registry.
      */
-    private boolean isAlreadyRegistered(Class<? extends Extension> extensionType) {
+    private boolean isAlreadyRegistered(final Class<? extends Extension> extensionType) {
         return (this.registeredExtensionTypes.contains(extensionType)
                 || (this.parent != null && this.parent.isAlreadyRegistered(extensionType)));
     }
@@ -187,11 +190,9 @@ public class ExtensionRegistry {
      * @param extensionType the type of {@link Extension} to stream
      * @see #getReversedExtensions(Class)
      */
-    private <E extends Extension> Stream<E> streamLocal(Class<E> extensionType) {
-        // @formatter:off
+    private <E extends Extension> Stream<E> streamLocal(final Class<E> extensionType) {
         return this.registeredExtensions.stream()
                 .filter(extensionType::isInstance)
                 .map(extensionType::cast);
-        // @formatter:on
     }
 }

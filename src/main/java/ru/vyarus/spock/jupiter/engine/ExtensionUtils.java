@@ -1,5 +1,6 @@
 package ru.vyarus.spock.jupiter.engine;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.extension.TestInstancePreDestroyCallback;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
-import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.commons.util.ReflectionUtils;
 import org.junit.platform.commons.util.StringUtils;
@@ -61,9 +61,9 @@ import static org.junit.platform.commons.util.ReflectionUtils.tryToReadFieldValu
  * @author Vyacheslav Rusakov
  * @since 30.11.2021
  */
-public class ExtensionUtils {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionUtils.class);
+@SuppressWarnings({"checkstyle:MultipleStringLiterals", "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects"})
+@SuppressFBWarnings("MS_MUTABLE_COLLECTION_PKGPROTECT")
+public final class ExtensionUtils {
 
     // see full list in org.junit.jupiter.api.extension.RegisterExtension
     public static final List<Class<? extends Extension>> SUPPORTED_EXTENSIONS = Arrays.asList(
@@ -80,6 +80,8 @@ public class ExtensionUtils {
     );
 
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
+            // TestTemplateInvocationContextProvider not included because it doesn't matter in context of spock
+
             // support can be added, but what for?
             InvocationInterceptor.class,
             // impossible to add (spock does not allow this)
@@ -89,8 +91,14 @@ public class ExtensionUtils {
             LifecycleMethodExecutionExceptionHandler.class,
             // support could be added, but this is too specific (will never be required)
             TestWatcher.class
-            // TestTemplateInvocationContextProvider not included because it doesn't matter
     );
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionUtils.class);
+
+    private static final Comparator<Field> ORDER_COMPARATOR = Comparator.comparingInt(ExtensionUtils::getOrder);
+
+    private ExtensionUtils() {
+    }
 
     public static ExtensionRegistry createRegistry(final Class<?> testClass) {
         final ExtensionRegistry registry = new ExtensionRegistry(null);
@@ -111,7 +119,7 @@ public class ExtensionUtils {
     }
 
     public static Stream<Class<? extends Extension>> findClassExtensions(final Class<?> testClass) {
-        return streamExtensionTypes(AnnotationUtils.findRepeatableAnnotations(testClass, ExtendWith.class));
+        return streamExtensionTypes(findRepeatableAnnotations(testClass, ExtendWith.class));
     }
 
     /**
@@ -131,17 +139,19 @@ public class ExtensionUtils {
     public static void registerExtensionsFromFields(final ExtensionRegistry registrar,
                                                     final Class<?> clazz,
                                                     final Object instance) {
-        Preconditions.notNull(registrar, "ExtensionRegistrar must not be null");
+        Preconditions.notNull(registrar, "ExtensionRegistry must not be null");
         Preconditions.notNull(clazz, "Class must not be null");
 
-        Predicate<Field> predicate = (instance == null ? ReflectionUtils::isStatic : ReflectionUtils::isNotStatic);
+        final Predicate<Field> predicate =
+                (instance == null ? ReflectionUtils::isStatic : ReflectionUtils::isNotStatic);
 
         findFields(clazz, predicate, TOP_DOWN).stream()
-                .sorted(orderComparator)
+                .sorted(ORDER_COMPARATOR)
                 .forEach(field -> {
-                    List<Class<? extends Extension>> extensionTypes = streamExtensionTypes(field).collect(toList());
-                    boolean isExtendWithPresent = !extensionTypes.isEmpty();
-                    boolean isRegisterExtensionPresent = isAnnotated(field, RegisterExtension.class);
+                    final List<Class<? extends Extension>> extensionTypes =
+                            streamExtensionTypes(field).collect(toList());
+                    final boolean isExtendWithPresent = !extensionTypes.isEmpty();
+                    final boolean isRegisterExtensionPresent = isAnnotated(field, RegisterExtension.class);
                     if (isExtendWithPresent) {
                         extensionTypes.forEach(registrar::registerExtension);
                     }
@@ -154,7 +164,7 @@ public class ExtensionUtils {
                                     Extension.class.getName()));
 
                             if (isExtendWithPresent) {
-                                Class<?> valueType = value.getClass();
+                                final Class<?> valueType = value.getClass();
                                 extensionTypes.forEach(extensionType -> {
                                     Preconditions.condition(!extensionType.equals(valueType),
                                             () -> String.format("Failed to register extension via field [%s]. "
@@ -183,10 +193,10 @@ public class ExtensionUtils {
     // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromExecutableParameters
     public static void registerExtensionsFromExecutableParameters(final ExtensionRegistry registrar,
                                                                   final Executable executable) {
-        Preconditions.notNull(registrar, "ExtensionRegistrar must not be null");
+        Preconditions.notNull(registrar, "ExtensionRegistry must not be null");
         Preconditions.notNull(executable, "Executable must not be null");
 
-        AtomicInteger index = new AtomicInteger();
+        final AtomicInteger index = new AtomicInteger();
 
         Arrays.stream(executable.getParameters())
                 .map(parameter -> findRepeatableAnnotations(parameter, index.getAndIncrement(), ExtendWith.class))
@@ -195,6 +205,7 @@ public class ExtensionUtils {
     }
 
     // based on org.junit.jupiter.engine.execution.ExecutableInvoker.resolveParameter
+    @SuppressWarnings("PMD.AvoidRethrowingException")
     public static Object resolveParameter(final ParameterContext parameterContext,
                                           final Executable executable,
                                           final AbstractContext context) {
@@ -209,17 +220,17 @@ public class ExtensionUtils {
             }
 
             if (exts.size() > 1) {
-                String resolvers = exts.stream()
+                final String resolvers = exts.stream()
                         .map(StringUtils::defaultToString)
                         .collect(joining(", "));
                 throw new ParameterResolutionException(
-                        String.format("Discovered multiple competing ParameterResolvers for parameter [%s] in " +
-                                        "method [%s]: %s",
+                        String.format("Discovered multiple competing ParameterResolvers for parameter [%s] in "
+                                        + "method [%s]: %s",
                                 parameterContext.getParameter(), executable.toGenericString(), resolvers));
             }
 
-            ParameterResolver resolver = exts.get(0);
-            Object value = resolver.resolveParameter(parameterContext, context);
+            final ParameterResolver resolver = exts.get(0);
+            final Object value = resolver.resolveParameter(parameterContext, context);
             validateResolvedType(parameterContext.getParameter(), value, executable, resolver);
 
             LOGGER.debug(() -> String.format(
@@ -249,11 +260,11 @@ public class ExtensionUtils {
                                              final Executable executable,
                                              final ParameterResolver resolver) {
 
-        Class<?> type = parameter.getType();
+        final Class<?> type = parameter.getType();
 
         // Note: null is permissible as a resolved value but only for non-primitive types.
         if (!isAssignableTo(value, type)) {
-            String message;
+            final String message;
             if (value == null && type.isPrimitive()) {
                 message = String.format(
                         "ParameterResolver [%s] resolved a null value for parameter [%s] "
@@ -270,8 +281,6 @@ public class ExtensionUtils {
             throw new ParameterResolutionException(message);
         }
     }
-
-    private static final Comparator<Field> orderComparator = Comparator.comparingInt(ExtensionUtils::getOrder);
 
     private static int getOrder(final Field field) {
         return findAnnotation(field, Order.class).map(Order::value).orElse(Order.DEFAULT);

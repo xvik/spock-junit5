@@ -121,7 +121,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     }
 
     @Override
-    public void interceptCleanupMethod(IMethodInvocation invocation) throws Throwable {
+    public void interceptCleanupMethod(final IMethodInvocation invocation) throws Throwable {
         spockLifecycle("cleanup");
 
         final MethodContext mcontext = getMethodContext(invocation);
@@ -170,6 +170,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + "." + name);
     }
 
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     private void injectArguments(final IMethodInvocation invocation, final AbstractContext context) {
         final Method method = invocation.getMethod().getReflection();
         final Object[] arguments = invocation.getArguments();

@@ -20,11 +20,14 @@ import static java.lang.String.format;
  * @author Vyacheslav Rusakov
  * @since 27.12.2021
  */
-public class ConditionEvaluator {
-    private static final Logger logger = LoggerFactory.getLogger(ConditionEvaluator.class);
+public final class ConditionEvaluator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConditionEvaluator.class);
 
     private static final ConditionEvaluationResult ENABLED = ConditionEvaluationResult.enabled(
             "No 'disabled' conditions encountered");
+
+    private ConditionEvaluator() {
+    }
 
     public static boolean skip(final ISkippable test, final AbstractContext context) {
         // org.junit.jupiter.engine.descriptor.JupiterTestDescriptor.shouldBeSkipped
@@ -69,7 +72,7 @@ public class ConditionEvaluator {
     private static void logResult(final Class<?> conditionType,
                                   final ConditionEvaluationResult result,
                                   final ExtensionContext context) {
-        logger.trace(() -> format("Evaluation of condition [%s] on [%s] resulted in: %s", conditionType.getName(),
+        LOGGER.trace(() -> format("Evaluation of condition [%s] on [%s] resulted in: %s", conditionType.getName(),
                 context.getElement().get(), result));
     }
 

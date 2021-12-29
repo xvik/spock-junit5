@@ -28,9 +28,10 @@ import static org.junit.platform.commons.util.ReflectionUtils.isAssignableTo;
  * @author Vyacheslav Rusakov
  * @since 20.12.2021
  */
+@SuppressWarnings("PMD.CompareObjectsWithEquals")
 public class ExtensionValuesStore {
 
-    private static final Comparator<StoredValue> REVERSE_INSERT_ORDER = Comparator.<StoredValue, Integer> comparing(
+    private static final Comparator<StoredValue> REVERSE_INSERT_ORDER = Comparator.<StoredValue, Integer>comparing(
             it -> it.order).reversed();
 
     private final AtomicInteger insertOrderSequence = new AtomicInteger();
@@ -73,14 +74,15 @@ public class ExtensionValuesStore {
         final CompositeKey compositeKey = new CompositeKey(namespace, key);
         StoredValue storedValue = getStoredValue(compositeKey);
         if (storedValue == null) {
-            StoredValue newValue = storedValue(new MemoizingSupplier(() -> defaultCreator.apply(key)));
+            final StoredValue newValue = storedValue(new MemoizingSupplier(() -> defaultCreator.apply(key)));
             storedValue = Optional.ofNullable(storedValues.putIfAbsent(compositeKey, newValue)).orElse(newValue);
         }
         return storedValue.evaluate();
     }
 
     protected <K, V> V getOrComputeIfAbsent(final ExtensionContext.Namespace namespace,
-                                            final K key, Function<K, V> defaultCreator,
+                                            final K key,
+                                            final Function<K, V> defaultCreator,
                                             final Class<V> requiredType) {
         final Object value = getOrComputeIfAbsent(namespace, key, defaultCreator);
         return castToRequiredType(key, value, requiredType);
@@ -95,7 +97,7 @@ public class ExtensionValuesStore {
     }
 
     protected Object remove(final ExtensionContext.Namespace namespace, final Object key) {
-        StoredValue previous = storedValues.remove(new CompositeKey(namespace, key));
+        final StoredValue previous = storedValues.remove(new CompositeKey(namespace, key));
         return (previous != null ? previous.evaluate() : null);
     }
 
@@ -105,14 +107,11 @@ public class ExtensionValuesStore {
     }
 
     private StoredValue getStoredValue(final CompositeKey compositeKey) {
-        final StoredValue storedValue = storedValues.get(compositeKey);
-        if (storedValue != null) {
-            return storedValue;
+        StoredValue storedValue = storedValues.get(compositeKey);
+        if (storedValue == null && parentStore != null) {
+            storedValue = parentStore.getStoredValue(compositeKey);
         }
-        if (parentStore != null) {
-            return parentStore.getStoredValue(compositeKey);
-        }
-        return null;
+        return storedValue;
     }
 
     @SuppressWarnings("unchecked")
@@ -121,17 +120,20 @@ public class ExtensionValuesStore {
             return null;
         }
         if (isAssignableTo(value, requiredType)) {
+            final T res;
             if (requiredType.isPrimitive()) {
-                return (T) getWrapperType(requiredType).cast(value);
+                res = (T) getWrapperType(requiredType).cast(value);
+            } else {
+                res = requiredType.cast(value);
             }
-            return requiredType.cast(value);
+            return res;
         }
         throw new ExtensionContextException(
                 String.format("Object stored under key [%s] is not of required type [%s]",
                         key, requiredType.getName()));
     }
 
-    private static class CompositeKey {
+    private static final class CompositeKey {
 
         private final ExtensionContext.Namespace namespace;
         private final Object key;
@@ -165,7 +167,7 @@ public class ExtensionValuesStore {
         private final int order;
         private final Supplier<Object> supplier;
 
-        public StoredValue(final int order, final Supplier<Object> supplier) {
+        StoredValue(final int order, final Supplier<Object> supplier) {
             this.order = order;
             this.supplier = supplier;
         }
@@ -173,8 +175,7 @@ public class ExtensionValuesStore {
         private Object evaluateSafely() {
             try {
                 return evaluate();
-            }
-            catch (RuntimeException e) {
+            } catch (RuntimeException e) {
                 return null;
             }
         }
@@ -185,7 +186,7 @@ public class ExtensionValuesStore {
 
     }
 
-    private static class MemoizingSupplier implements Supplier<Object> {
+    private static final class MemoizingSupplier implements Supplier<Object> {
 
         private static final Object NO_VALUE_SET = new Object();
 
@@ -214,11 +215,9 @@ public class ExtensionValuesStore {
                 if (value == NO_VALUE_SET) {
                     value = delegate.get();
                 }
-            }
-            catch (RuntimeException e) {
+            } catch (RuntimeException e) {
                 value = new Failure(e);
-            }
-            finally {
+            } finally {
                 lock.unlock();
             }
         }
@@ -227,7 +226,7 @@ public class ExtensionValuesStore {
 
             private final RuntimeException exception;
 
-            public Failure(RuntimeException exception) {
+            Failure(final RuntimeException exception) {
                 this.exception = exception;
             }
         }

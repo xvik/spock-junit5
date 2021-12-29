@@ -18,7 +18,13 @@ import java.util.Optional;
  * @author Vyacheslav Rusakov
  * @since 22.12.2021
  */
-public class DefaultTestInstances implements TestInstances {
+public final class DefaultTestInstances implements TestInstances {
+
+    private final List<Object> instances;
+
+    private DefaultTestInstances(final List<Object> instances) {
+        this.instances = Preconditions.notEmpty(instances, "instances must not be empty");
+    }
 
     public static DefaultTestInstances of(final Object instance) {
         return new DefaultTestInstances(Collections.singletonList(instance));
@@ -28,12 +34,6 @@ public class DefaultTestInstances implements TestInstances {
         final List<Object> allInstances = new ArrayList<>(testInstances.getAllInstances());
         allInstances.add(instance);
         return new DefaultTestInstances(Collections.unmodifiableList(allInstances));
-    }
-
-    private final List<Object> instances;
-
-    private DefaultTestInstances(final List<Object> instances) {
-        this.instances = Preconditions.notEmpty(instances, "instances must not be empty");
     }
 
     @Override
