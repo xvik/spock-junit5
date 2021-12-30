@@ -1,6 +1,6 @@
 package ru.vyarus.spock.jupiter
 
-
+import org.junit.platform.engine.TestExecutionResult
 import ru.vyarus.spock.jupiter.support.ActionHolder
 import spock.lang.Specification
 import spock.util.EmbeddedSpecRunner
@@ -15,6 +15,8 @@ import java.util.logging.LogManager
  */
 abstract class AbstractTest extends Specification {
 
+    static Boolean ACTIVE = false
+
     static {
         // configure JUL
         try (InputStream is = AbstractTest.class.getClassLoader().
@@ -27,13 +29,23 @@ abstract class AbstractTest extends Specification {
 
     List<String> runTest(Class test) {
         ActionHolder.cleanup();
+        ACTIVE = true
         try {
             def runner = new EmbeddedSpecRunner()
+            // do not rethrow exception - all errors will remain in holder
+            runner.throwFailure = false
             runner.runClass(test)
-                    .containerEvents()
-                    .assertStatistics(stats -> stats.failed(0).aborted(0));
+                    .allEvents().failed().stream()
+                    // exceptions appended to events log
+                    .forEach(event -> {
+                        Throwable err = event.getPayload(TestExecutionResult.class).get().getThrowable().get();
+                        ActionHolder.add("Error: (" + err.getClass().getSimpleName() + ") " + err.getMessage());
+                    });
+//                    .containerEvents()
+//                    .assertStatistics(stats -> stats.failed(0).aborted(0));
             return ActionHolder.getState();
         } finally {
+            ACTIVE = false
             ActionHolder.cleanup();
         }
     }

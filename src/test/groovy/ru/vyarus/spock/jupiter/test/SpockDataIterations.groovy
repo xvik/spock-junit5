@@ -2,14 +2,16 @@ package ru.vyarus.spock.jupiter.test
 
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.RegisterExtension
+import ru.vyarus.spock.jupiter.AbstractTest
 import ru.vyarus.spock.jupiter.support.*
+import spock.lang.Requires
 import spock.lang.Specification
 
 /**
  * @author Vyacheslav Rusakov
  * @since 26.12.2021
  */
-// @Ignore
+@Requires({ AbstractTest.ACTIVE })
 class SpockDataIterations extends Specification {
 
     @RegisterExtension
