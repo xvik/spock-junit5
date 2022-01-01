@@ -8,6 +8,8 @@ import playground.tests.exceptions.JupiterAfterTestError;
 import playground.tests.exceptions.JupiterBeforeAllError;
 import playground.tests.exceptions.JupiterBeforeEachError;
 import playground.tests.exceptions.JupiterBeforeTestError;
+import playground.tests.exceptions.JupiterParameterError;
+import playground.tests.exceptions.JupiterParameterError2;
 import playground.tests.exceptions.JupiterPostProcessorError;
 import playground.tests.exceptions.JupiterPreDestroyError;
 import playground.tests.exceptions.JupiterTestError;
@@ -157,5 +159,32 @@ public class JupiterErrorsTest extends AbstractJupiterTest {
                         "TestInstancePreDestroyCallback true",
                         "AfterAllCallback",
                         "Error: (IllegalStateException) problem"));
+    }
+
+    @Test
+    void testParameterError() {
+        Assertions.assertEquals(runTest(JupiterParameterError.class),
+                Arrays.asList("BeforeAllCallback",
+                        "BeforeEachCallback",
+                        "BeforeTestExecutionCallback",
+                        "AfterTestExecutionCallback",
+                        "AfterEachCallback",
+                        "AfterAllCallback",
+                        "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [void playground.tests.exceptions.JupiterParameterError.sampleTest(java.lang.Integer)]: problem"
+                ));
+    }
+
+    @Test
+    void testParameterError2() {
+        Assertions.assertEquals(runTest(JupiterParameterError2.class),
+                Arrays.asList("BeforeAllCallback",
+                        "BeforeEachCallback",
+                        "BeforeTestExecutionCallback",
+                        "ParameterExtension sampleTest",
+                        "AfterTestExecutionCallback",
+                        "AfterEachCallback",
+                        "AfterAllCallback",
+                        "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [void playground.tests.exceptions.JupiterParameterError2.sampleTest(java.lang.Integer)]: problem"
+                ));
     }
 }

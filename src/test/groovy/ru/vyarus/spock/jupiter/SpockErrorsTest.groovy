@@ -139,4 +139,31 @@ class SpockErrorsTest extends AbstractTest {
                                           "AfterAllCallback",
                                           "Error: (IllegalStateException) problem"]
     }
+
+    def "Check parameter error"() {
+
+        expect: 'all callbacks executed'
+        runTest(SpockParameterError) == ["BeforeAllCallback",
+                                         "BeforeEachCallback",
+                                         "BeforeTestExecutionCallback",
+                                         "AfterTestExecutionCallback",
+                                         "AfterEachCallback",
+                                         "AfterAllCallback",
+                                         "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.exception.SpockParameterError.\$spock_feature_0_0(java.lang.Integer)]: problem"
+        ]
+    }
+
+    def "Check parameter error 2"() {
+
+        expect: 'all callbacks executed'
+        runTest(SpockParameterError2) == ["BeforeAllCallback",
+                                          "BeforeEachCallback",
+                                          "BeforeTestExecutionCallback",
+                                          "ParameterExtension \$spock_feature_0_0",
+                                          "AfterTestExecutionCallback",
+                                          "AfterEachCallback",
+                                          "AfterAllCallback",
+                                          "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.exception.SpockParameterError2.\$spock_feature_0_0(java.lang.Integer)]: problem"
+        ]
+    }
 }
