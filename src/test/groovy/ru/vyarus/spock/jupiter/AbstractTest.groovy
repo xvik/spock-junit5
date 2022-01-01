@@ -39,6 +39,7 @@ abstract class AbstractTest extends Specification {
                     // exceptions appended to events log
                     .forEach(event -> {
                         Throwable err = event.getPayload(TestExecutionResult.class).get().getThrowable().get();
+                        err.printStackTrace()
                         ActionHolder.add("Error: (" + err.getClass().getSimpleName() + ") " + err.getMessage());
                     });
 //                    .containerEvents()

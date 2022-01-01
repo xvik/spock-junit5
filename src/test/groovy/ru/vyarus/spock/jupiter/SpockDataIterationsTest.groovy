@@ -1,6 +1,7 @@
 package ru.vyarus.spock.jupiter
 
 import ru.vyarus.spock.jupiter.test.SpockDataIterations
+import ru.vyarus.spock.jupiter.test.SpockDataIterationsInstanceHooks
 
 /**
  * @author Vyacheslav Rusakov
@@ -41,5 +42,16 @@ class SpockDataIterationsTest extends AbstractTest {
                                          "AfterEachCallback-3",
                                          "AfterEachCallback",
                                          "AfterAllCallback"]
+    }
+
+    def "Check instance hooks"() {
+
+        expect: 'check instance hooks called every time'
+        runTest(SpockDataIterationsInstanceHooks) == ["TestInstancePostProcessor true false",
+                                                      "test.body 1",
+                                                      "TestInstancePreDestroyCallback true",
+                                                      "TestInstancePostProcessor true false",
+                                                      "test.body 2",
+                                                      "TestInstancePreDestroyCallback true"]
     }
 }

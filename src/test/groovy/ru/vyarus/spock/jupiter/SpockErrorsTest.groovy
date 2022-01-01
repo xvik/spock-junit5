@@ -1,10 +1,6 @@
 package ru.vyarus.spock.jupiter
 
-import ru.vyarus.spock.jupiter.test.exception.SpockAfterAllError
-import ru.vyarus.spock.jupiter.test.exception.SpockAfterEachError
-import ru.vyarus.spock.jupiter.test.exception.SpockBeforeAllError
-import ru.vyarus.spock.jupiter.test.exception.SpockBeforeEachError
-import ru.vyarus.spock.jupiter.test.exception.SpockTestError
+import ru.vyarus.spock.jupiter.test.exception.*
 
 /**
  * @author Vyacheslav Rusakov
@@ -82,5 +78,65 @@ class SpockErrorsTest extends AbstractTest {
                                     "AfterEachCallback",
                                     "AfterAllCallback",
                                     "Error: (IllegalStateException) problem"]
+    }
+
+    def "Check before test error"() {
+
+        expect: 'test not executed'
+        runTest(SpockBeforeTestError) == ["BeforeAllCallback",
+                                          "BeforeAllCallback-2",
+                                          "BeforeEachCallback",
+                                          "BeforeEachCallback-2",
+                                          "BeforeTestExecutionCallback",
+                                          "AfterTestExecutionCallback-2",
+                                          "AfterTestExecutionCallback",
+                                          "AfterEachCallback-2",
+                                          "AfterEachCallback",
+                                          "AfterAllCallback-2",
+                                          "AfterAllCallback",
+                                          "Error: (IllegalStateException) problem"]
+    }
+
+    def "Check after test error"() {
+
+        expect: 'test executed'
+        runTest(SpockAfterTestError) == ["BeforeAllCallback",
+                                         "BeforeAllCallback-2",
+                                         "BeforeEachCallback",
+                                         "BeforeEachCallback-2",
+                                         "BeforeTestExecutionCallback",
+                                         "BeforeTestExecutionCallback-2",
+                                         "test.body",
+                                         "AfterTestExecutionCallback-2",
+                                         "AfterTestExecutionCallback",
+                                         "AfterEachCallback-2",
+                                         "AfterEachCallback",
+                                         "AfterAllCallback-2",
+                                         "AfterAllCallback",
+                                         "Error: (IllegalStateException) problem"]
+    }
+
+    def "Check post processor error"() {
+
+        expect: 'test not executed'
+        runTest(SpockPostProcessError) == ["BeforeAllCallback",
+                                           "AfterAllCallback",
+                                           "Error: (IllegalStateException) problem",
+                                           // this is correct because spock creates 2 failed events
+                                           "Error: (IllegalStateException) problem"]
+    }
+
+    def "Check pre destroy error"() {
+
+        expect: 'all callbacks executed'
+        runTest(SpockPreDestroyError) == ["BeforeAllCallback",
+                                          "BeforeEachCallback",
+                                          "BeforeTestExecutionCallback",
+                                          "test.body",
+                                          "AfterTestExecutionCallback",
+                                          "AfterEachCallback",
+                                          "TestInstancePreDestroyCallback true",
+                                          "AfterAllCallback",
+                                          "Error: (IllegalStateException) problem"]
     }
 }
