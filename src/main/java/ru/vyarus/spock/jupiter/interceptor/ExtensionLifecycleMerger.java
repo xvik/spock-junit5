@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.commons.util.Preconditions;
+import org.junit.platform.commons.util.UnrecoverableExceptions;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInterceptor;
 import org.spockframework.runtime.extension.IMethodInvocation;
@@ -114,7 +115,16 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
             junit.beforeTestExecution(mcontext);
 
             injectArguments(invocation, mcontext);
-            invocation.proceed();
+            // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod
+            mcontext.getCollector().execute(() -> {
+                try {
+                    invocation.proceed();
+                } catch (Throwable throwable) {
+                    UnrecoverableExceptions.rethrowIfUnrecoverable(throwable);
+                    // note: will also handle assertion errors! jupiter works the same way
+                    junit.handleTestException(mcontext, throwable);
+                }
+            });
         } finally {
             junit.afterTestExecution(mcontext);
         }

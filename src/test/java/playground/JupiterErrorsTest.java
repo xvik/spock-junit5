@@ -13,6 +13,8 @@ import playground.tests.exceptions.JupiterParameterError2;
 import playground.tests.exceptions.JupiterPostProcessorError;
 import playground.tests.exceptions.JupiterPreDestroyError;
 import playground.tests.exceptions.JupiterTestError;
+import playground.tests.exceptions.JupiterTestExceptionHandler;
+import playground.tests.exceptions.JupiterTestExceptionHandler2;
 
 import java.util.Arrays;
 
@@ -185,6 +187,34 @@ public class JupiterErrorsTest extends AbstractJupiterTest {
                         "AfterEachCallback",
                         "AfterAllCallback",
                         "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [void playground.tests.exceptions.JupiterParameterError2.sampleTest(java.lang.Integer)]: problem"
+                ));
+    }
+
+    @Test
+    void testExceptionHandler() {
+        Assertions.assertEquals(runTest(JupiterTestExceptionHandler.class),
+                Arrays.asList("BeforeAllCallback",
+                        "BeforeEachCallback",
+                        "BeforeTestExecutionCallback",
+                        "RethrowExceptionHandler problem",
+                        "SwallowExceptionHandler problem",
+                        "AfterTestExecutionCallback",
+                        "AfterEachCallback",
+                        "AfterAllCallback"
+                ));
+    }
+
+    @Test
+    void testExceptionHandlerForAssertion() {
+        Assertions.assertEquals(runTest(JupiterTestExceptionHandler2.class),
+                Arrays.asList("BeforeAllCallback",
+                        "BeforeEachCallback",
+                        "BeforeTestExecutionCallback",
+                        "RethrowExceptionHandler assert fail",
+                        "SwallowExceptionHandler assert fail",
+                        "AfterTestExecutionCallback",
+                        "AfterEachCallback",
+                        "AfterAllCallback"
                 ));
     }
 }

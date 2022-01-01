@@ -166,4 +166,30 @@ class SpockErrorsTest extends AbstractTest {
                                           "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.exception.SpockParameterError2.\$spock_feature_0_0(java.lang.Integer)]: problem"
         ]
     }
+
+    def "Check exception handler extension"() {
+
+        expect: 'exception should be swallowed'
+        runTest(SpockTestExceptionHandler) == ["BeforeAllCallback",
+                                               "BeforeEachCallback",
+                                               "BeforeTestExecutionCallback",
+                                               "RethrowExceptionHandler problem",
+                                               "SwallowExceptionHandler problem",
+                                               "AfterTestExecutionCallback",
+                                               "AfterEachCallback",
+                                               "AfterAllCallback"]
+    }
+
+    def "Check exception handler on assertion"() {
+
+        expect: 'assertion swallowed'
+        runTest(SpockTestExceptionHandler2) == ["BeforeAllCallback",
+                                                "BeforeEachCallback",
+                                                "BeforeTestExecutionCallback",
+                                                "RethrowExceptionHandler Condition not satisfied:\n\nfalse\n",
+                                                "SwallowExceptionHandler Condition not satisfied:\n\nfalse\n",
+                                                "AfterTestExecutionCallback",
+                                                "AfterEachCallback",
+                                                "AfterAllCallback"]
+    }
 }

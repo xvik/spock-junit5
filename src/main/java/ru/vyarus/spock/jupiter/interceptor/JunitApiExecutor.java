@@ -7,12 +7,14 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.jupiter.api.extension.TestInstancePreDestroyCallback;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.commons.util.ExceptionUtils;
+import org.junit.platform.commons.util.UnrecoverableExceptions;
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
 import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
@@ -122,6 +124,11 @@ public class JunitApiExecutor {
         collector.assertEmpty();
     }
 
+    // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestExecutionExceptionHandlers
+    public void handleTestException(final MethodContext context, final Throwable error) {
+        processTestException(context, getReversedExtensions(context, TestExecutionExceptionHandler.class), error);
+    }
+
     private <T extends Extension> List<T> getReversedExtensions(final AbstractContext context, final Class<T> type) {
         return getExtensions(context, type, true);
     }
@@ -150,6 +157,24 @@ public class JunitApiExecutor {
             executable.execute();
         } catch (Throwable throwable) {
             ExceptionUtils.throwAsUncheckedException(throwable);
+        }
+    }
+
+    // org.junit.jupiter.engine.descriptor.JupiterTestDescriptor.invokeExecutionExceptionHandlers
+    private void processTestException(final MethodContext context,
+                                      final List<TestExecutionExceptionHandler> handlers,
+                                      final Throwable error) {
+        // No handlers left?
+        if (handlers.isEmpty()) {
+            ExceptionUtils.throwAsUncheckedException(error);
+        }
+
+        try {
+            // Invoke next available handler
+            handlers.remove(0).handleTestExecutionException(context, error);
+        } catch (Throwable handledThrowable) {
+            UnrecoverableExceptions.rethrowIfUnrecoverable(handledThrowable);
+            processTestException(context, handlers, handledThrowable);
         }
     }
 }

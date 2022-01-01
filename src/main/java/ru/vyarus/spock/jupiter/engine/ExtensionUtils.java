@@ -76,19 +76,18 @@ public final class ExtensionUtils {
             AfterTestExecutionCallback.class,
             ParameterResolver.class,
             TestInstancePostProcessor.class,
-            TestInstancePreDestroyCallback.class
+            TestInstancePreDestroyCallback.class,
+            TestExecutionExceptionHandler.class
     );
 
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
             // TestTemplateInvocationContextProvider not included because it doesn't matter in context of spock
 
-            // support can be added, but what for?
-            InvocationInterceptor.class,
             // impossible to add (spock does not allow this)
             TestInstanceFactory.class,
-            // exception handling support could be added, but is it needed?
-            TestExecutionExceptionHandler.class,
+            // could be supported, but what for?
             LifecycleMethodExecutionExceptionHandler.class,
+            InvocationInterceptor.class,
             // support could be added, but this is too specific (will never be required)
             TestWatcher.class
     );
