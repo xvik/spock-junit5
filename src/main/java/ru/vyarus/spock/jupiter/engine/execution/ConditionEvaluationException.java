@@ -1,6 +1,6 @@
 package ru.vyarus.spock.jupiter.engine.execution;
 
-import org.junit.platform.commons.JUnitException;
+import org.spockframework.runtime.SpockException;
 
 /**
  * Thrown if an error is encountered while evaluating an {@link org.junit.jupiter.api.extension.ExecutionCondition}.
@@ -10,7 +10,7 @@ import org.junit.platform.commons.JUnitException;
  * @author Vyacheslav Rusakov
  * @since 27.12.2021
  */
-public class ConditionEvaluationException extends JUnitException {
+public class ConditionEvaluationException extends SpockException {
 
     private static final long serialVersionUID = 1L;
 

@@ -8,6 +8,7 @@ import playground.tests.exceptions.JupiterAfterTestError;
 import playground.tests.exceptions.JupiterBeforeAllError;
 import playground.tests.exceptions.JupiterBeforeEachError;
 import playground.tests.exceptions.JupiterBeforeTestError;
+import playground.tests.exceptions.JupiterConditionError;
 import playground.tests.exceptions.JupiterParameterError;
 import playground.tests.exceptions.JupiterParameterError2;
 import playground.tests.exceptions.JupiterPostProcessorError;
@@ -187,6 +188,13 @@ public class JupiterErrorsTest extends AbstractJupiterTest {
                         "AfterEachCallback",
                         "AfterAllCallback",
                         "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [void playground.tests.exceptions.JupiterParameterError2.sampleTest(java.lang.Integer)]: problem"
+                ));
+    }
+
+    @Test
+    void testConditionError() {
+        Assertions.assertEquals(runTest(JupiterConditionError.class),
+                Arrays.asList("Error: (ConditionEvaluationException) Failed to evaluate condition [ru.vyarus.spock.jupiter.support.exceptions.ConditionError]: problem"
                 ));
     }
 

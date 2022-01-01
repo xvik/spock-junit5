@@ -167,6 +167,13 @@ class SpockErrorsTest extends AbstractTest {
         ]
     }
 
+    def "Check condition evaluation fail"() {
+
+        expect: 'fail'
+        runTest(SpockConditionError) == ["Error: (ConditionEvaluationException) Failed to evaluate condition [ru.vyarus.spock.jupiter.support.exceptions.ConditionError]: problem"
+        ]
+    }
+
     def "Check exception handler extension"() {
 
         expect: 'exception should be swallowed'

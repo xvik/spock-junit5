@@ -31,7 +31,7 @@ public final class ConditionEvaluator {
 
     public static boolean skip(final ISkippable test, final AbstractContext context) {
         // org.junit.jupiter.engine.descriptor.JupiterTestDescriptor.shouldBeSkipped
-        final ConditionEvaluationResult execution = ConditionEvaluator.evaluate(context.getRegistry(), context);
+        final ConditionEvaluationResult execution = evaluate(context.getRegistry(), context);
         if (execution.isDisabled()) {
             test.skip(execution.getReason().orElse("<unknown>"));
             return true;

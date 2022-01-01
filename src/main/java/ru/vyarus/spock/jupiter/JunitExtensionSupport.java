@@ -77,10 +77,16 @@ public class JunitExtensionSupport implements IGlobalExtension {
 
         final ClassContext specContext = new ClassContext(registry, spec);
 
-        if (ConditionEvaluator.skip(spec, specContext)) {
-            // skip execution based on junit's ExecutionCondition
-            return;
-        }
+        // condition check must be delayed to let spock extensions to work first because otherwise it is impossible
+        // to prevent condition exception (required for tests)
+        spec.addInterceptor(invocation -> {
+            if (ConditionEvaluator.skip(spec, specContext)) {
+                // skip execution based on junit's ExecutionCondition
+                return;
+            }
+            invocation.proceed();
+        });
+
 
         // note: method-level (feature) extensions are collected just before feature execution because
         // in case of data-providers same feature would be executed several times and each time extensions
