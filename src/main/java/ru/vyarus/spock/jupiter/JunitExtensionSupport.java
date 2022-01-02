@@ -20,9 +20,8 @@ import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
  *     will force skipping tests.</li>
  * </ul>
  * <p>
- * Junit extensions are executed before spock extensions. For example, {@code BeforeAllCallback} extension would be
- * executed before spock extensions using {@code interceptSetupSpecMethod} (because extension is global it would
- * be executed before all other spock extensions and that's why junit extensions will work in priority).
+ * Junit extensions are executed after spock annotated extensions. Extension is implemented as global spock extension
+ * and spock calls them after annotations processing.
  * <p>
  * Supported almost all junit extension types, except {@link ExtensionUtils#UNSUPPORTED_EXTENSIONS} (exception
  * handling, test watching, invocation interceptor and of course test instance factory). If not supported  extension

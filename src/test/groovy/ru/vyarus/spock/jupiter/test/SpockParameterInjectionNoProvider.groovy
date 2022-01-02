@@ -38,11 +38,6 @@ class SpockParameterInjectionNoProvider extends Specification {
 @Target([ElementType.TYPE, ElementType.METHOD])
 @ExtensionAnnotation(ParamsExtension)
 @interface Params {
-    /**
-     * The reason for ignoring this element.
-     *
-     * @return the reason for ignoring this element
-     */
     String value() default "";
 }
 

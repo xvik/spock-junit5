@@ -1,11 +1,6 @@
 package ru.vyarus.spock.jupiter
 
-import ru.vyarus.spock.jupiter.test.SpockBaseLifecycle
-import ru.vyarus.spock.jupiter.test.SpockDoubleLifecycle
-import ru.vyarus.spock.jupiter.test.SpockFieldExtensions
-import ru.vyarus.spock.jupiter.test.SpockSetupAllMethodExtensions
-import ru.vyarus.spock.jupiter.test.SpockSetupMethodExtensions
-import ru.vyarus.spock.jupiter.test.SpockTestMethodExtensions
+import ru.vyarus.spock.jupiter.test.*
 
 /**
  * @author Vyacheslav Rusakov
@@ -107,6 +102,26 @@ class SpockLifecycleTest extends AbstractTest {
                                           "AfterTestExecutionCallback",
                                           "AfterEachCallback-2",
                                           "AfterEachCallback",
+                                          "AfterAllCallback"]
+    }
+
+    def "Check spock lifecycle order"() {
+
+        expect: 'executed'
+        runTest(SpockLifecyclesOrder) == ["SpockLifecycleExtension",
+                                          "BeforeAllCallback",
+                                          "test.beforeAll",
+                                          "TestInstancePostProcessor true false",
+                                          "SpockLifecycleExtension Sample test",
+                                          "BeforeEachCallback",
+                                          "test.before",
+                                          "BeforeTestExecutionCallback",
+                                          "test.body",
+                                          "AfterTestExecutionCallback",
+                                          "test.after",
+                                          "AfterEachCallback",
+                                          "TestInstancePreDestroyCallback true",
+                                          "test.afterAll",
                                           "AfterAllCallback"]
     }
 }
