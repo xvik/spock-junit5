@@ -14,7 +14,7 @@ public class ParameterExtension implements ParameterResolver {
     @Override
     public boolean supportsParameter(ParameterContext parameterContext,
                                      ExtensionContext extensionContext) throws ParameterResolutionException {
-        ActionHolder.add("ParameterExtension " + parameterContext.getDeclaringExecutable().getName());
+        ActionHolder.add(getClass().getSimpleName() + " " + parameterContext.getDeclaringExecutable().getName());
         return parameterContext.getParameter().getType().equals(Integer.class);
     }
 

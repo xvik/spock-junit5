@@ -1,5 +1,6 @@
 package ru.vyarus.spock.jupiter
 
+import ru.vyarus.spock.jupiter.test.SpockCompetingParameterInjection
 import ru.vyarus.spock.jupiter.test.SpockParameterInjection
 
 /**
@@ -27,5 +28,14 @@ class SpockParamsTest extends AbstractTest {
                                              "ParameterExtension cleanupSpec",
                                              "test.afterAll 11",
                                              "AfterAllCallback"]
+    }
+
+    def "Check competing params injection"() {
+
+        expect: 'params injection error'
+        runTest(SpockCompetingParameterInjection) == ["ParameterExtension \$spock_feature_0_0",
+                                                      "ParameterExtension2 \$spock_feature_0_0",
+                                                      "Error: (ParameterResolutionException) Discovered multiple competing ParameterResolvers for parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockCompetingParameterInjection.\$spock_feature_0_0(java.lang.Integer)]: ParameterExtension, ParameterExtension2"
+        ]
     }
 }

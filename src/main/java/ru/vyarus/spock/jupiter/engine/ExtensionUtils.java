@@ -220,7 +220,7 @@ public final class ExtensionUtils {
 
             if (exts.size() > 1) {
                 final String resolvers = exts.stream()
-                        .map(StringUtils::defaultToString)
+                        .map(parameterResolver -> parameterResolver.getClass().getSimpleName())
                         .collect(joining(", "));
                 throw new ParameterResolutionException(
                         String.format("Discovered multiple competing ParameterResolvers for parameter [%s] in "
