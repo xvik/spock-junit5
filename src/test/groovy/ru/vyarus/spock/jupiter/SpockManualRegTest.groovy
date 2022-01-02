@@ -1,6 +1,7 @@
 package ru.vyarus.spock.jupiter
 
-import ru.vyarus.spock.jupiter.test.SpockDoubleLifecycle
+
+import ru.vyarus.spock.jupiter.test.SpockInvalidManualRegistration
 import ru.vyarus.spock.jupiter.test.SpockManualRegistration
 
 /**
@@ -27,6 +28,12 @@ class SpockManualRegTest extends AbstractTest {
                                              "AfterEachCallback-3",
                                              "AfterEachCallback",
                                              "AfterAllCallback"]
+    }
+
+    def "Check incorrect registration"() {
+
+        expect: 'manually registered extensions clash'
+        runTest(SpockInvalidManualRegistration) == ["Error: (PreconditionViolationException) Failed to register extension via field [private ru.vyarus.spock.jupiter.support.LifecycleExtension ru.vyarus.spock.jupiter.test.SpockInvalidManualRegistration.ext]. The field registers an extension of type [ru.vyarus.spock.jupiter.support.LifecycleExtension] via @RegisterExtension and @ExtendWith, but only one registration of a given extension type is permitted."]
     }
 
 }
