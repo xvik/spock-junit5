@@ -17,7 +17,7 @@ class DefaultInstancesTest extends Specification {
 
         then: "methods work"
         inst.findInstance(Integer).get() == 12
-        inst.findInstance(List).empty
+        !inst.findInstance(List).isPresent()
         inst.allInstances == [12]
         inst.enclosingInstances.empty
         inst.innermostInstance == 12
