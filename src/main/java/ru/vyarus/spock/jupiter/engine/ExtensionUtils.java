@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.TestInstanceFactory;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.jupiter.api.extension.TestInstancePreDestroyCallback;
+import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
@@ -81,7 +82,8 @@ public final class ExtensionUtils {
     );
 
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
-            // TestTemplateInvocationContextProvider not included because it doesn't matter in context of spock
+            // not included because it doesn't matter in context of spock
+            TestTemplateInvocationContextProvider.class,
 
             // impossible to add (spock does not allow this)
             TestInstanceFactory.class,
