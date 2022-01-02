@@ -26,7 +26,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Merges junit extensions lifecycle into spock. Junit extensions executed after other spock annotated extensions.
+ * Merges junit extensions lifecycle into spock. Junit extensions executed before any other spock extensions
+ * (only other global spock extensions may be executed before, but they are almost never used).
  * <p>
  * Implementation based on {@code org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor} and
  * {@code org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor} from junit-jupiter-engine.
