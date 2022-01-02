@@ -199,4 +199,16 @@ class SpockErrorsTest extends AbstractTest {
                                                 "AfterEachCallback",
                                                 "AfterAllCallback"]
     }
+
+    def "Check no supported extension found"() {
+
+        expect: 'error'
+        runTest(SpockNotSupportedExtensions) == ["Error: (IllegalStateException) Extension ru.vyarus.spock.jupiter.test.exception.SpockNotSupportedExtensions\$NotSupportedExtension does not use any of supported extension types: ExecutionCondition, BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback, BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver, TestInstancePostProcessor, TestInstancePreDestroyCallback, TestExecutionExceptionHandler"]
+    }
+
+    def "Check extension with both supported and not supported extensions"() {
+
+        expect: 'only warning printed'
+        runTest(SpockNotSupportedExtensions2) == ["test.body"]
+    }
 }
