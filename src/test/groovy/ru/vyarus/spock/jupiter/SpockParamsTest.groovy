@@ -2,6 +2,7 @@ package ru.vyarus.spock.jupiter
 
 import ru.vyarus.spock.jupiter.test.SpockCompetingParameterInjection
 import ru.vyarus.spock.jupiter.test.SpockParameterInjection
+import ru.vyarus.spock.jupiter.test.SpockParameterInjectionNoProvider
 
 /**
  * @author Vyacheslav Rusakov
@@ -37,5 +38,11 @@ class SpockParamsTest extends AbstractTest {
                                                       "ParameterExtension2 \$spock_feature_0_0",
                                                       "Error: (ParameterResolutionException) Discovered multiple competing ParameterResolvers for parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockCompetingParameterInjection.\$spock_feature_0_0(java.lang.Integer)]: ParameterExtension, ParameterExtension2"
         ]
+    }
+
+    def "Check spock extension used when no junit providers"() {
+
+        expect: 'params injection done'
+        runTest(SpockParameterInjectionNoProvider) == ["test.body 13"]
     }
 }
