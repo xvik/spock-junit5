@@ -1,10 +1,6 @@
 package ru.vyarus.spock.jupiter
 
-import ru.vyarus.spock.jupiter.test.SpockCompetingParameterInjection
-import ru.vyarus.spock.jupiter.test.SpockParamInjectionNullPrimitive
-import ru.vyarus.spock.jupiter.test.SpockParamInjectionWrongType
-import ru.vyarus.spock.jupiter.test.SpockParameterInjection
-import ru.vyarus.spock.jupiter.test.SpockParameterInjectionNoProvider
+import ru.vyarus.spock.jupiter.test.*
 
 /**
  * @author Vyacheslav Rusakov
@@ -58,5 +54,17 @@ class SpockParamsTest extends AbstractTest {
 
         expect: 'value resolved with bad type'
         runTest(SpockParamInjectionWrongType) == ["Error: (ParameterResolutionException) ParameterResolver [ru.vyarus.spock.jupiter.test.ParamBadType] resolved a value of type [java.lang.Double] for parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockParamInjectionWrongType.\$spock_feature_0_0(java.lang.Integer)], but a value assignment compatible with [java.lang.Integer] is required."]
+    }
+
+    def "Check param context"() {
+
+        expect: 'context values ok'
+        runTest(SpockParamContextAccess) == ["param.name arg0",
+                                             "param.exec \$spock_feature_0_0",
+                                             "param.index 0",
+                                             "param.target SpockParamContextAccess",
+                                             "param.annotation true true 1",
+                                             "test.body 12"
+        ]
     }
 }

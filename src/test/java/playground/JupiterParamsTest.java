@@ -2,6 +2,7 @@ package playground;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import playground.tests.JupiterParamContextAccess;
 import playground.tests.JupiterParameterInjection;
 
 import java.util.Arrays;
@@ -32,5 +33,18 @@ public class JupiterParamsTest extends AbstractJupiterTest {
                         "ParameterExtension afterAll",
                         "test.afterAll 11",
                         "AfterAllCallback"));
+    }
+
+    @Test
+    void testContext() {
+        Assertions.assertEquals(runTest(JupiterParamContextAccess.class),
+                Arrays.asList(
+                        "param.name arg0",
+                        "param.exec sampleTest",
+                        "param.index 0",
+                        "param.target JupiterParamContextAccess",
+                        "param.annotation true true 1",
+                        "test.body 12"
+                ));
     }
 }
