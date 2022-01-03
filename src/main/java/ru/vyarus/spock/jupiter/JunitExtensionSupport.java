@@ -1,6 +1,10 @@
 package ru.vyarus.spock.jupiter;
 
+import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
+import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.spockframework.runtime.extension.IGlobalExtension;
+import org.spockframework.runtime.extension.IMethodInvocation;
+import org.spockframework.runtime.model.MethodKind;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.ExtensionUtils;
@@ -54,6 +58,11 @@ import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
  * Spock's shared state is not used: don't mark {@link org.junit.jupiter.api.extension.RegisterExtension}
  * extensions with {@code @Shared} - they will still be processed as instance-level extensions. Use static fields
  * to declare spec-wide extensions (same as in jupiter).
+ * <p>
+ * Special API added to allow SPOCK extensions accessing junit shared state (used by all extensions to store values):
+ * {@link #getStore(SpecInfo, Namespace)} and {@link #getStore(IMethodInvocation, Namespace)}. This might be used
+ * by spock extension authors to access junit state values or to simply using junit state as there is no
+ * alternative feature in spock itself.
  *
  * @author Vyacheslav Rusakov
  * @see ExtensionLifecycleMerger for lifecycle details
@@ -106,5 +115,79 @@ public class JunitExtensionSupport implements IGlobalExtension {
 
         // intercept test methods (inject parameters and before/after execution hooks)
         spec.getAllFeatures().forEach(featureInfo -> featureInfo.getFeatureMethod().addInterceptor(interceptor));
+    }
+
+    // SPOCK extensions API (allow easy access to junit storage)
+
+    /**
+     * Storage used by junit extensions to keep local state
+     * (<a href=https://junit.org/junit5/docs/current/user-guide/#extensions-keeping-state">see docs</a>). Spock does
+     * not have anything like this. This method allows spock extension authors to access storage used by junit
+     * extensions and so access contained values. May be also used for storing values by spock extensions.
+     * <p>
+     * Storage is hierarchical: there are spec level storage (used by
+     * {@link ConditionEvaluator}, {@link org.junit.jupiter.api.extension.BeforeAllCallback},
+     * {@link org.junit.jupiter.api.extension.AfterAllCallback} and
+     * {@link org.junit.jupiter.api.extension.TestInstancePreDestroyCallback} when no test instance is available).
+     * For each test instance created for feature (test method or test method data-iteration) new storage created
+     * (see {@link #getStore(IMethodInvocation, Namespace)} for accessing). Child storage level could see all parent
+     * values, but not modify them.
+     * <p>
+     * In short: this method provides class-wide (spec-wide) storage, which values are visible in all test methods.
+     * This is the same call as {@link org.junit.jupiter.api.extension.ExtensionContext#getStore(Namespace)}.
+     * Method might be called at any time because extension is global and so will work before any other custom
+     * spock extension.
+     *
+     * @param spec      specification instance
+     * @param namespace target namespace
+     * @return namespaced storage instance
+     * @throws NullPointerException if junit extension interceptor could not be found
+     */
+    public static Store getStore(final SpecInfo spec, final Namespace namespace) {
+        return findInterceptor(spec).getSpecContext().getStore(namespace);
+    }
+
+    /**
+     * In contrast to {@link #getStore(SpecInfo, Namespace)} provide either class-level or method-level context
+     * (depends on test instance presence). In most cases simply use this method to get storage from the most
+     * actual context level (but if you need only root level use spec-based method: for example, might be useful
+     * if you need to modify root storage values).
+     * <p>
+     * Feature-wide storage context created on just after spock initialization event (not shared initialization!) and
+     * destroyed after cleanup event. New instance created for EACH test method execution (in case of data-driven tests
+     * for each iteration!).
+     * <p>
+     * Method level context is used for junit extensions: {@link org.junit.jupiter.api.extension.BeforeEachCallback},
+     * {@link org.junit.jupiter.api.extension.BeforeTestExecutionCallback},
+     * {@link org.junit.jupiter.api.extension.AfterTestExecutionCallback},
+     * {@link org.junit.jupiter.api.extension.ParameterResolver},
+     * {@link org.junit.jupiter.api.extension.AfterEachCallback} and
+     * {@link org.junit.jupiter.api.extension.TestInstancePreDestroyCallback}.
+     * <p>
+     * This is the same call as {@link org.junit.jupiter.api.extension.ExtensionContext#getStore(Namespace)}.
+     * Method context will see all values from spec-level, but will not be able to modify them (if you try to set value
+     * it would modify method level only; same for remove).
+     *
+     * @param invocation spock extension parameter
+     * @param namespace  target namespace
+     * @return namespaced storage instance (method or class level)
+     * @throws NullPointerException if junit extension interception not found, test instance is not yet available
+     *                              or method context not found when should be
+     */
+    public static Store getStore(final IMethodInvocation invocation, final Namespace namespace) {
+        // method context created AFTER complete initialization, so it would be impossible to have method context here
+        return invocation.getMethod().getKind() == MethodKind.INITIALIZER
+                // filter shared init case (instance present, but method context would not be ready)
+                || invocation.getFeature() == null
+                || invocation.getInstance() == null
+                ? getStore(invocation.getSpec(), namespace)
+                : findInterceptor(invocation.getSpec()).getMethodContext(invocation).getStore(namespace);
+    }
+
+    private static ExtensionLifecycleMerger findInterceptor(final SpecInfo spec) {
+        return (ExtensionLifecycleMerger) spec.getSetupSpecInterceptors().stream()
+                .filter(interceptor -> interceptor instanceof ExtensionLifecycleMerger)
+                .findFirst().orElseThrow(() ->
+                        new NullPointerException("Junit support not found in spec: " + spec.getDisplayName()));
     }
 }

@@ -1,6 +1,5 @@
 package ru.vyarus.spock.jupiter.interceptor;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
@@ -71,6 +70,23 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         return fixtureMethodsInterceptor;
     }
 
+    /**
+     * @return spec-level context
+     */
+    public ClassContext getSpecContext() {
+        return context;
+    }
+
+    /**
+     * @param invocation spock event
+     * @return method context
+     * @throws NullPointerException when context not found
+     */
+    public MethodContext getMethodContext(final IMethodInvocation invocation) {
+        return Preconditions.notNull(methods.get(invocation.getInstance()), () -> "Method context not found for '"
+                + invocation.getSpec().getDisplayName() + "/" + invocation.getFeature().getDisplayName() + "' feature");
+    }
+
     @Override
     public void interceptSetupSpecMethod(final IMethodInvocation invocation) throws Throwable {
         junit.beforeAll(context);
@@ -83,6 +99,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     public void interceptInitializerMethod(final IMethodInvocation invocation) throws Throwable {
         // note that shared init phase is ignored
         spockLifecycle("initialization");
+        // important to call before because otherwise @RegisterExtension would not work (fields are null)
         invocation.proceed();
 
         final Object instance = Preconditions.notNull(invocation.getInstance(), "No spec instance");
@@ -160,7 +177,6 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         context.close();
     }
 
-    @NotNull
     private MethodContext createMethodContext(final FeatureInfo featureInfo, final Object instance) {
         final Method method = featureInfo.getFeatureMethod().getReflection();
         final ExtensionRegistry methodRegistry = ExtensionUtils.createMethodRegistry(context.getRegistry(), method);
@@ -168,12 +184,6 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         // register non-static @RegisterExtension annotated extensions
         ExtensionUtils.registerExtensionsFromFields(methodRegistry, context.getRequiredTestClass(), instance);
         return new MethodContext(context, methodRegistry, featureInfo, instance);
-    }
-
-    @NotNull
-    private MethodContext getMethodContext(final IMethodInvocation invocation) {
-        return Preconditions.notNull(methods.get(invocation.getInstance()), () -> "Method context not found for '"
-                + invocation.getFeature().getDisplayName() + "' feature");
     }
 
     private void spockLifecycle(final String name) {

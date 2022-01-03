@@ -6,6 +6,10 @@ import org.junit.platform.commons.util.Preconditions;
 import java.util.function.Function;
 
 /**
+ * Store implementation bound to exact namespace. Note that underlying store is hierarchical: root for spec level
+ * and child for test instance. All values from parent store are visible, but it is not possible to modify
+ * these values!
+ * <p>
  * Copy of {@code org.junit.jupiter.engine.execution.NamespaceAwareStore} from junit-jupiter-engine.
  *
  * @author Vyacheslav Rusakov
