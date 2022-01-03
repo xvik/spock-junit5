@@ -3,9 +3,14 @@ package ru.vyarus.spock.jupiter.test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.spockframework.runtime.extension.ExtensionAnnotation
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
+import org.spockframework.runtime.extension.IMethodInterceptor
+import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.SpecInfo
 import ru.vyarus.spock.jupiter.AbstractTest
-import ru.vyarus.spock.jupiter.support.*
+import ru.vyarus.spock.jupiter.support.ActionHolder
+import ru.vyarus.spock.jupiter.support.LifecycleExtension
+import ru.vyarus.spock.jupiter.support.PostConstructExtension
+import ru.vyarus.spock.jupiter.support.PreDestroyExtension
 import spock.lang.Requires
 import spock.lang.Specification
 
@@ -59,11 +64,39 @@ class SpockLifecyclesOrder extends Specification {
 class SpockLifecycleExtension implements IAnnotationDrivenExtension<SpockLifecycle> {
     @Override
     void visitSpecAnnotation(SpockLifecycle annotation, SpecInfo spec) {
-        ActionHolder.add("SpockLifecycleExtension")
+        ActionHolder.add("spock.visitSpecAnnotation")
 
-        spec.getAllFeatures()*.addInterceptor({
-            ActionHolder.add("SpockLifecycleExtension $it.feature.displayName")
-            it.proceed()
-        })
+        spec.addSharedInitializerInterceptor new I('shared initializer')
+        spec.sharedInitializerMethod?.addInterceptor new I('shared initializer method')
+        spec.addInterceptor new I('specification')
+        spec.addSetupSpecInterceptor new I('setup spec')
+        spec.setupSpecMethods*.addInterceptor new I('setup spec method')
+        spec.allFeatures*.addInterceptor new I('feature')
+        spec.addInitializerInterceptor new I('initializer')
+        spec.initializerMethod?.addInterceptor new I('initializer method')
+        spec.allFeatures*.addIterationInterceptor new I('iteration')
+        spec.addSetupInterceptor new I('setup')
+        spec.setupMethods*.addInterceptor new I('setup method')
+        spec.allFeatures*.featureMethod*.addInterceptor new I('feature method')
+        spec.addCleanupInterceptor new I('cleanup')
+        spec.cleanupMethods*.addInterceptor new I('cleanup method')
+        spec.addCleanupSpecInterceptor new I('cleanup spec')
+        spec.cleanupSpecMethods*.addInterceptor new I('cleanup spec method')
+        spec.allFixtureMethods*.addInterceptor new I('fixture method')
+    }
+
+    static class I implements IMethodInterceptor {
+
+        String name
+
+        I(String name) {
+            this.name = name
+        }
+
+        @Override
+        void intercept(IMethodInvocation invocation) throws Throwable {
+            ActionHolder.add("spock." + invocation.getMethod().getKind() + " (" + name + ")")
+            invocation.proceed()
+        }
     }
 }

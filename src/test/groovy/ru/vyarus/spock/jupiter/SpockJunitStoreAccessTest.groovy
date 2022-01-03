@@ -12,15 +12,19 @@ class SpockJunitStoreAccessTest extends AbstractTest {
     def "Check junit context access from spock extension"() {
 
         expect: 'correct storages'
-        runTest(SpockJunitStateAccess) == ["SpockStoreExtension",
-                                           "SpockInterceptor.sharedInit null",
+        runTest(SpockJunitStateAccess) == ["spock.visitSpecAnnotation",
+                                           "spock.SHARED_INITIALIZER (shared initializer) null",
+                                           "spock.SPEC_EXECUTION (specification) null",
                                            "JunitExt.beforeAll 11",
-                                           "SpockInterceptor.setupAll 11",
-                                           "SpockInterceptor.init 11",
+                                           "spock.SETUP_SPEC (setup spec) 11",
+                                           "spock.INITIALIZER (initializer) 11",
+                                           "spock.FEATURE_EXECUTION (feature) 11",
+                                           "spock.ITERATION_EXECUTION (iteration) 11",
                                            "JunitExt.beforeEach 12",
-                                           "SpockInterceptor.setup 12",
+                                           "spock.SETUP (setup) 12",
+                                           "spock.FEATURE (feature method) 12",
                                            "test.body",
-                                           "SpockInterceptor.cleanup 12",
-                                           "SpockInterceptor.cleanupAll 11"]
+                                           "spock.CLEANUP (cleanup) 12",
+                                           "spock.CLEANUP_SPEC (cleanup spec) 11"]
     }
 }
