@@ -109,6 +109,10 @@ class SpockLifecycleTest extends AbstractTest {
 
         expect: 'executed'
         runTest(SpockLifecyclesOrder) == ["spock.visitSpecAnnotation",
+                                          "spock.visitFieldAnnotation field",
+                                          "spock.visitFixtureAnnotation setupSpec",
+                                          "spock.visitFixtureAnnotation setup",
+                                          "spock.visitFeatureAnnotation Sample test",
                                           "spock.SHARED_INITIALIZER (shared initializer)",
                                           "spock.SPEC_EXECUTION (specification)",
                                           "BeforeAllCallback",
