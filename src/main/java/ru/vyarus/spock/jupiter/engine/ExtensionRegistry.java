@@ -48,6 +48,8 @@ public class ExtensionRegistry {
      * <p>Extensions in ancestors are ignored.
      *
      * @param extensionType the type of {@link Extension} to stream
+     * @param <E>           extension type
+     * @return stream of found extensions
      * @see #getReversedExtensions(Class)
      */
     public <E extends Extension> Stream<E> stream(final Class<E> extensionType) {
@@ -62,6 +64,8 @@ public class ExtensionRegistry {
      * in this registry or one of its ancestors.
      *
      * @param extensionType the type of {@link Extension} to get
+     * @param <E>           extension type
+     * @return list of found extensions or empty list
      * @see #getReversedExtensions(Class)
      * @see #stream(Class)
      */
@@ -74,6 +78,8 @@ public class ExtensionRegistry {
      * in this registry or one of its ancestors, in reverse order.
      *
      * @param extensionType the type of {@link Extension} to get
+     * @param <E>           extension type
+     * @return reversed list of found extensions
      * @see #getExtensions(Class)
      * @see #stream(Class)
      */
@@ -102,8 +108,8 @@ public class ExtensionRegistry {
     /**
      * Register the supplied {@link Extension}, without checking if an extension
      * of that type has already been registered.
-     *
-     * <h4>Semantics for Source</h4>
+     * <p>
+     * Semantics for Source
      *
      * <p>If an extension is registered <em>declaratively</em> via
      * {@link org.junit.jupiter.api.extension.ExtendWith @ExtendWith}, the

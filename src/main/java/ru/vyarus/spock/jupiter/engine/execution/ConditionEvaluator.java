@@ -43,7 +43,8 @@ public final class ConditionEvaluator {
      * Evaluate all {@link ExecutionCondition} extensions registered for the
      * supplied {@link ExtensionContext}.
      *
-     * @param context the current {@code ExtensionContext}
+     * @param extensionRegistry extensions registry
+     * @param context           the current {@code ExtensionContext}
      * @return the first <em>disabled</em> {@code ConditionEvaluationResult},
      * or a default <em>enabled</em> {@code ConditionEvaluationResult} if no
      * disabled conditions are encountered

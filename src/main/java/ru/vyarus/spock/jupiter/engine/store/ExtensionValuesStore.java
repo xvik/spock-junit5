@@ -44,8 +44,8 @@ public class ExtensionValuesStore {
 
     /**
      * Close all values that implement {@link ExtensionContext.Store.CloseableResource}.
-     *
-     * @implNote Only close values stored in this instance. This implementation
+     * <p>
+     * Note: Only close values stored in this instance. This implementation
      * does not close values in parent stores.
      */
     public void closeAllStoredCloseableValues() {

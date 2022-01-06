@@ -121,7 +121,7 @@ public class JunitExtensionSupport implements IGlobalExtension {
 
     /**
      * Storage used by junit extensions to keep local state
-     * (<a href=https://junit.org/junit5/docs/current/user-guide/#extensions-keeping-state">see docs</a>). Spock does
+     * (<a href="https://junit.org/junit5/docs/current/user-guide/#extensions-keeping-state">see docs</a>). Spock does
      * not have anything like this. This method allows spock extension authors to access storage used by junit
      * extensions and so access contained values. May be also used for storing values by spock extensions.
      * <p>
