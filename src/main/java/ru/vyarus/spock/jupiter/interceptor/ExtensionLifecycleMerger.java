@@ -30,6 +30,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * Implementation based on {@code org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor} and
  * {@code org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor} from junit-jupiter-engine.
+ * <p>
+ * NOTE: spock {@code @Shared} fields could not be supported as it would require duplicate beforeEach execution
+ * with different instances, which would probably break many junit extensions. As a result, {@code @Shared} fields
+ * would ALWAYS be null (because they are managed in a different instance - extension would not be able to initialize
+ * it in any case). This would produce ambiguous situations I can't detect. And so there is only one rule:
+ * nothing junit-specific should use {@code @Shared} annotation.
  *
  * @author Vyacheslav Rusakov
  * @since 30.11.2021
