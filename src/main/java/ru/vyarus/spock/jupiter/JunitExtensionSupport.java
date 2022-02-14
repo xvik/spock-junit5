@@ -56,8 +56,8 @@ import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
  * </ul>
  * <p>
  * Spock's shared state is not used: don't mark {@link org.junit.jupiter.api.extension.RegisterExtension}
- * extensions with {@code @Shared} - they will still be processed as instance-level extensions. Use static fields
- * to declare spec-wide extensions (same as in jupiter).
+ * extensions with {@code @Shared} - they will always be null as spock manage them on different instance. Use static
+ * fields to declare spec-wide extensions (same as in jupiter).
  * <p>
  * Special API added to allow SPOCK extensions accessing junit shared state (used by all extensions to store values):
  * {@link #getStore(SpecInfo, Namespace)} and {@link #getStore(IMethodInvocation, Namespace)}. This might be used

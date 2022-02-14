@@ -7,8 +7,8 @@
 
 ### About
 
-Junit 5 (jupiter) [extensions](https://junit.org/junit5/docs/current/user-guide/#extensions) integration
-for [Spock Framework](https://spockframework.org/) (2.x)
+Junit 5 (jupiter) [extensions](https://junit.org/junit5/docs/current/user-guide/#extensions) support
+for [Spock Framework](https://spockframework.org/) 2: allows using junit 5 extension in spock (like it was with junit 4 rules in spock 1). 
 
 Features:
 
@@ -17,11 +17,12 @@ Features:
     - Warning message would indicate not supported extension types (if usage detected)
 * Supports all the same registration types:
     - @ExtendWith on class, method, field or param
-    - @RegisterExtension on static and usual fields
-* Supports parameters injection in test and fixture methods
-* Support junit ExecutionConditions (for example, junit `@Disabled` would work)
-* Implemented as global spock extension (implicit activation)
-* Additional API for accessing values storage by spock extensions
+    - Custom annotations on class, method, field or param
+    - @RegisterExtension on static and usual fields (direct registration)
+* Supports parameters injection in test and fixture methods (but not in constructor)
+* Support junit `ExecutionConditions` (for example, junit `@Disabled` would work)
+* Implicit activation: implemented as global spock extension
+* Provides junit value storage for spock extensions
   (to access values stored by junit extensions or for direct usage because spock does not provide such feature)
 
 Extensions behaviour is the same as in jupiter engine (the same code used where possible). Behavior in both engines
@@ -32,10 +33,14 @@ validated with tests.
 Originally developed for [dropwizard-guicey](https://github.com/xvik/dropwizard-guicey) to avoid maintaining special
 spock extensions.
 
-Spock 1 provides spock-junit4 module to support junit 4 rules. At that time spock extensions model was light years ahead
+Spock 1 provides spock-junit4 module to support junit 4 rules. At that time spock extensions model was "light years" ahead
 of junit. But junit 5 extensions are nearly equal in power to spock extensions (both has pros and cons). It is a big
 loss for spock to ignore junit5 extensions:
 junit extensions are easier to write, but spock is still much better for writing tests.
+
+Module named `spock-junit5` by analogy with legacy `spock-junit4` module.
+There should be no official `spock-junit5` module so name would stay unique
+(there are discussions of official `spock-jupiter` module with value storage implementation).
 
 ### Setup
 
@@ -129,10 +134,7 @@ class Test extends Specification {
 }
 ```
 
-NOTE: there is no additional support for `@Shared` spock fields - they would be treated as instance-level extensions (
-shared marker just ignored). Junit has value storages, so extension could be static and store and retrieve state from
-test-specific storage instead of managing it inside extensions. That's the problem shared state was intended to solve
-for spock extensions.
+NOTE: `@Shared` spock fields are not supported
 
 #### Method parameters
 
@@ -228,6 +230,22 @@ Not supported:
 * TestWatcher - no need in context of spock
 
 Of course, constructor parameters injection is not supported because spock does not allow spec constructors.
+
+### Spock @Shared state 
+
+**Junit extensions would not be able to initialize `@Shared` fields**. So just don't use `@Shared` 
+on fields that must be initialized by junit extensions.
+
+The reason is: shared fields are managed on a special test instance, different
+from instance used for test execution. But in junit lifecycle beforeEach
+could be called only once (otherwise extensions may work incorrectly)
+and so it is called only with actual test instance.
+
+Even if junit extension initialize `@Shared` field - it would make no effect because
+it would be done on test instance instead of shared test instance and
+on field access spock will return shared object's field value (not initialized - most likely, null).
+
+This limitation should not be a problem.
 
 ### Lifecycle
 
@@ -333,7 +351,7 @@ Junit extensions postfix means: (c) - class context, (m) - method context
 
 ### Access storage from spock
 
-Spock extension could access junit value storage with:
+Spock's extension could access junit value storage with:
 
 * `JunitExtensionSupport.getStore(SpecInfo, Namespace)` - obtain spec-level store
 * `JunitExtensionSupport.getStore(IMethodInvocation, Namespace)` - obtain method or spec level store (depends on hook)
