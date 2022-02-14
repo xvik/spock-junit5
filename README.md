@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://www.opensource.org/licenses/MIT)
 [![CI](https://github.com/xvik/spock-junit5/actions/workflows/CI.yml/badge.svg)](https://github.com/xvik/spock-junit5/actions/workflows/CI.yml)
 [![Appveyor build status](https://ci.appveyor.com/api/projects/status/github/xvik/spock-junit5?svg=true)](https://ci.appveyor.com/project/xvik/spock-junit5)
-[![codecov](https://codecov.io/gh/xvik/spock-junit5/branch/main/graph/badge.svg)](https://codecov.io/gh/xvik/spock-junit5)
+[![codecov](https://codecov.io/gh/xvik/spock-junit5/branch/master/graph/badge.svg)](https://codecov.io/gh/xvik/spock-junit5)
 
 ### About
 
