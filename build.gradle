@@ -32,7 +32,7 @@ dependencies {
 }
 
 group = 'ru.vyarus'
-description = 'Junit 5 extensions integration for Spock Framework'
+description = 'Junit 5 extensions support for Spock Framework 2'
 
 github {
     user = 'xvik'
@@ -51,7 +51,7 @@ pom {
 
 javaLib {
     // java 9 auto module name
-    autoModuleName = "$project.group.$project.name"
+    autoModuleName = 'ru.vyarus.spock.junit5'
     // don't publish gradle metadata artifact
     withoutGradleMetadata()
     // use only direct dependencies in the generated pom, removing BOM mentions
