@@ -274,12 +274,12 @@ class SpockLifecyclesOrder extends Specification {
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.TYPE, ElementType.METHOD, ElementType.FIELD])
-@ExtensionAnnotation(SpockExtension)
+@ExtensionAnnotation(SpockExtensionImpl)
 @interface SpockExtension {
     String value() default "";
 }
 
-class SpockExtension implements IAnnotationDrivenExtension<SpockExtension> {
+class SpockExtensionImpl implements IAnnotationDrivenExtension<SpockExtension> {
     @Override
     void visitSpecAnnotation(SpockExtension annotation, SpecInfo spec) {
         spec.addSharedInitializerInterceptor new I('shared initializer')
