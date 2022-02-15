@@ -22,7 +22,7 @@ Features:
 * Supports parameters injection in test and fixture methods (but not in constructor)
 * Support junit `ExecutionConditions` (for example, junit `@Disabled` would work)
 * Implicit activation: implemented as global spock extension
-* Provides junit value storage for spock extensions
+* API for spock extensions to use junit value storage
   (to access values stored by junit extensions or for direct usage because spock does not provide such feature)
 
 Extensions behaviour is the same as in jupiter engine (the same code used where possible). Behavior in both engines
@@ -40,7 +40,7 @@ junit extensions are easier to write, but spock is still much better for writing
 
 Module named `spock-junit5` by analogy with legacy `spock-junit4` module.
 There should be no official `spock-junit5` module so name would stay unique
-(there are discussions of official `spock-jupiter` module with value storage implementation).
+(there are discussions about official `spock-jupiter` module with value storage implementation).
 
 ### Setup
 
@@ -243,7 +243,7 @@ and so it is called only with actual test instance.
 
 Even if junit extension initialize `@Shared` field - it would make no effect because
 it would be done on test instance instead of shared test instance and
-on field access spock will return shared object's field value (not initialized - most likely, null).
+on field access spock will return shared instance field value (not initialized - most likely, null).
 
 This limitation should not be a problem.
 
@@ -279,9 +279,9 @@ class SpockLifecyclesOrder extends Specification {
     String value() default "";
 }
 
-class SpockExtension implements IAnnotationDrivenExtension<SpockLifecycle> {
+class SpockExtension implements IAnnotationDrivenExtension<SpockExtension> {
     @Override
-    void visitSpecAnnotation(SpockLifecycle annotation, SpecInfo spec) {
+    void visitSpecAnnotation(SpockExtension annotation, SpecInfo spec) {
         spec.addSharedInitializerInterceptor new I('shared initializer')
         spec.sharedInitializerMethod?.addInterceptor new I('shared initializer method')
         spec.addInterceptor new I('specification')
@@ -326,7 +326,7 @@ class SpockExtension implements IAnnotationDrivenExtension<SpockLifecycle> {
 |                                    | **TEST setup**             |                     |                                                 |
 | BeforeTestExecutionCallback (m)    |                            |                     |                                                 |
 |                                    | feature method             | FEATURE             | spec.allFeatures*.featureMethod*.addInterceptor |
-|                                    | ** TEST body**             |                     |                                                 |
+|                                    | **TEST body**             |                     |                                                 |
 | AfterTestExecutionCallback (m)     |                            |                     |                                                 |
 |                                    | cleanup                    | CLEANUP             | spec.addCleanupInterceptor                      |
 |                                    | cleanup method             | CLEANUP             | spec.cleanupMethods*.addInterceptor             |
@@ -351,7 +351,7 @@ Junit extensions postfix means: (c) - class context, (m) - method context
 
 ### Access storage from spock
 
-Spock's extension could access junit value storage with:
+Spock extension could access junit value storage with:
 
 * `JunitExtensionSupport.getStore(SpecInfo, Namespace)` - obtain spec-level store
 * `JunitExtensionSupport.getStore(IMethodInvocation, Namespace)` - obtain method or spec level store (depends on hook)
