@@ -42,6 +42,8 @@ Module named `spock-junit5` by analogy with legacy `spock-junit4` module.
 There should be no official `spock-junit5` module so name would stay unique
 (there are discussions about official `spock-jupiter` module with value storage implementation).
 
+[More details about motivation and realization in the blog post](https://blog.vyarus.ru/using-junit-5-extensions-in-spock-2-tests).
+
 ### Setup
 
 [![Maven Central](https://img.shields.io/maven-central/v/ru.vyarus/spock-junit5.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/ru.vyarus/spock-junit5)
