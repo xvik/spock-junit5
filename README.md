@@ -55,15 +55,28 @@ Maven:
 <dependency>
     <groupId>ru.vyarus</groupId>
     <artifactId>spock-junit5</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ru.vyarus:spock-junit5:1.0.0'
+implementation 'ru.vyarus:spock-junit5:1.0.1'
 ```
+
+### Compatibility
+
+Compiled for java 8 (compatible up to java 17), junit 5.8.2
+
+The only library dependency is *junit-jupiter-api*: first of all, to bring in required junit annotations
+and to avoid usage with lower junit versions (Junit API evolves rapidly and so older versions may cause problems)
+
+Spock | Junit | Version
+--------|-------|-----
+2.2     | 5.9.0 | 1.0.1 is compatible in most cases; fully compatible version would be released soon
+2.1     | 5.8.2 | 1.0.1
+2.0     | 5.7.2 | 1.0.1
 
 ##### Snapshots
 
