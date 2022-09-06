@@ -23,9 +23,11 @@ dependencies {
 
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.7.2'
 
+    // direct dependency to prevent usage with older junit api
+    implementation 'org.junit.jupiter:junit-jupiter-api'
+
     // to not force exact version in user classpath
     provided 'org.spockframework:spock-core:2.1-groovy-3.0'
-    provided 'org.junit.jupiter:junit-jupiter-api'
 
     testImplementation 'org.junit.platform:junit-platform-testkit'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter'
