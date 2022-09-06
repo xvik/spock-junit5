@@ -2,7 +2,6 @@ package playground;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import playground.tests.JupiterDoubleLifecycle;
 import playground.tests.JupiterManualRegistration;
 
 import java.util.Arrays;

@@ -1,6 +1,6 @@
 package ru.vyarus.spock.jupiter
 
-import ru.vyarus.spock.jupiter.test.SpockParameterInjection
+
 import ru.vyarus.spock.jupiter.test.SpockSkipClass
 import ru.vyarus.spock.jupiter.test.SpockSkipMethod
 
