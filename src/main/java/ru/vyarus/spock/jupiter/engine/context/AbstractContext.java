@@ -1,6 +1,7 @@
 package ru.vyarus.spock.jupiter.engine.context;
 
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExecutableInvoker;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.platform.commons.util.Preconditions;
@@ -41,6 +42,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     protected final ThrowableCollector collector;
 
     private final ExtensionValuesStore valuesStore;
+    private final ExecutableInvoker invoker;
 
     public AbstractContext(final ExtensionContext parent,
                            final ExtensionRegistry registry,
@@ -52,6 +54,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
         this.spec = spec;
         collector = new OpenTest4JAwareThrowableCollector();
         valuesStore = createStore(parent);
+        invoker = new DefaultExecutableInvoker(this);
     }
 
     @Override
@@ -121,6 +124,11 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
                 // default value not set in spock
                 .orElse(org.spockframework.runtime.model.parallel.ExecutionMode.SAME_THREAD);
         return ExecutionMode.valueOf(executionMode.name());
+    }
+
+    @Override
+    public ExecutableInvoker getExecutableInvoker() {
+        return invoker;
     }
 
     public ExtensionRegistry getRegistry() {

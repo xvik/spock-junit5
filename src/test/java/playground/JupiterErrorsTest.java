@@ -9,6 +9,7 @@ import playground.tests.exceptions.JupiterBeforeAllError;
 import playground.tests.exceptions.JupiterBeforeEachError;
 import playground.tests.exceptions.JupiterBeforeTestError;
 import playground.tests.exceptions.JupiterConditionError;
+import playground.tests.exceptions.JupiterExecutableInvokerError;
 import playground.tests.exceptions.JupiterParameterError;
 import playground.tests.exceptions.JupiterParameterError2;
 import playground.tests.exceptions.JupiterPostProcessorError;
@@ -18,6 +19,7 @@ import playground.tests.exceptions.JupiterTestExceptionHandler;
 import playground.tests.exceptions.JupiterTestExceptionHandler2;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * @author Vyacheslav Rusakov
@@ -223,6 +225,14 @@ public class JupiterErrorsTest extends AbstractJupiterTest {
                         "AfterTestExecutionCallback",
                         "AfterEachCallback",
                         "AfterAllCallback"
+                ));
+    }
+
+    @Test
+    void testExecutableInvokerError() {
+        Assertions.assertEquals(runTest(JupiterExecutableInvokerError.class),
+                Collections.singletonList(
+                        "Error: (ParameterResolutionException) No ParameterResolver registered for parameter [java.lang.Integer arg0] in constructor [public ru.vyarus.spock.jupiter.support.ExecutableInvokerUsage$Inst(java.lang.Integer)]."
                 ));
     }
 }

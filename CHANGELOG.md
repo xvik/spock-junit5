@@ -1,3 +1,5 @@
+* Update to junit 5.9: added ExecutableInvoker support (spock 2.2 compatibility)
+
 ### 1.0.1 (2022-09-06)
 * Add direct dependency to junit-jupiter-api to simplify usage and prevent running with older junit versions
 

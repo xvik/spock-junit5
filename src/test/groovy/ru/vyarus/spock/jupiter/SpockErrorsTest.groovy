@@ -200,6 +200,12 @@ class SpockErrorsTest extends AbstractTest {
                                                 "AfterAllCallback"]
     }
 
+    def "Check executable invoker error"() {
+
+        expect: 'executable invoker call failed'
+        runTest(SpockExecutableInvokerError) == ['Error: (ParameterResolutionException) No ParameterResolver registered for parameter [java.lang.Integer arg0] in constructor [public ru.vyarus.spock.jupiter.support.ExecutableInvokerUsage$Inst(java.lang.Integer)].']
+    }
+
     def "Check no supported extension found"() {
 
         expect: 'error'

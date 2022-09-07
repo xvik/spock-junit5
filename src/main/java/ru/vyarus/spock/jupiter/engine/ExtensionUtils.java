@@ -33,6 +33,7 @@ import org.spockframework.runtime.model.MethodInfo;
 import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -226,8 +227,9 @@ public final class ExtensionUtils {
                         .collect(joining(", "));
                 throw new ParameterResolutionException(
                         String.format("Discovered multiple competing ParameterResolvers for parameter [%s] in "
-                                        + "method [%s]: %s",
-                                parameterContext.getParameter(), executable.toGenericString(), resolvers));
+                                        + "%s [%s]: %s",
+                                parameterContext.getParameter(), asLabel(executable), executable.toGenericString(),
+                                resolvers));
             }
 
             final ParameterResolver resolver = exts.get(0);
@@ -235,9 +237,9 @@ public final class ExtensionUtils {
             validateResolvedType(parameterContext.getParameter(), value, executable, resolver);
 
             LOGGER.debug(() -> String.format(
-                    "ParameterResolver [%s] resolved a value of type [%s] for parameter [%s] in method [%s].",
+                    "ParameterResolver [%s] resolved a value of type [%s] for parameter [%s] in %s [%s].",
                     resolver.getClass().getName(), (value != null ? value.getClass().getName() : null),
-                    parameterContext.getParameter(), executable.toGenericString()));
+                    parameterContext.getParameter(), asLabel(executable), executable.toGenericString()));
 
             return value;
         } catch (ParameterResolutionException ex) {
@@ -245,8 +247,8 @@ public final class ExtensionUtils {
         } catch (Throwable throwable) {
             UnrecoverableExceptions.rethrowIfUnrecoverable(throwable);
 
-            String message = String.format("Failed to resolve parameter [%s] in method [%s]",
-                    parameterContext.getParameter(), executable.toGenericString());
+            String message = String.format("Failed to resolve parameter [%s] in %s [%s]",
+                    parameterContext.getParameter(), asLabel(executable), executable.toGenericString());
 
             if (StringUtils.isNotBlank(throwable.getMessage())) {
                 message += ": " + throwable.getMessage();
@@ -254,6 +256,14 @@ public final class ExtensionUtils {
 
             throw new ParameterResolutionException(message, throwable);
         }
+    }
+
+    /**
+     * @param executable executable
+     * @return correct executable name
+     */
+    public static String asLabel(final Executable executable) {
+        return executable instanceof Constructor ? "constructor" : "method";
     }
 
     private static void validateResolvedType(final Parameter parameter,
