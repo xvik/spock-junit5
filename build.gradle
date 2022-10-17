@@ -21,7 +21,7 @@ repositories { mavenLocal(); mavenCentral() }
 dependencies {
     implementation platform('org.junit:junit-bom:5.9.1')
 
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.7.2'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.7.3'
 
     // direct dependency to prevent usage with older junit api
     implementation 'org.junit.jupiter:junit-jupiter-api'
