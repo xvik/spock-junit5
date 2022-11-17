@@ -16,6 +16,14 @@ public class JupiterContextTest extends AbstractJupiterTest {
     void testContextMethods() {
         Assertions.assertEquals(runTest(JupiterContext.class),
                 Arrays.asList(
+                        "root.id: [engine:junit-jupiter]",
+                        "root.display name: JUnit Jupiter",
+                        "root.parent: false",
+                        "root.root: JUnit Jupiter",
+                        "root.lifecycle: false",
+                        "root.exec mode: SAME_THREAD",
+                        "root.exception: false",
+
                         "class.id: [engine:junit-jupiter]/[class:playground.tests.JupiterContext]",
                         "class.display name: JupiterContext",
                         "class.parent: true",

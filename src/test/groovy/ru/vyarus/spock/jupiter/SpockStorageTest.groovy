@@ -12,14 +12,15 @@ class SpockStorageTest extends AbstractTest {
     def "Check storage behaviour"() {
 
         expect: 'storage ok'
-        runTest(SpockStorage) == ["BeforeAllCallback null",
-                                  "TestInstancePostProcessor 12",
-                                  "BeforeEachCallback 12 null",
-                                  "BeforeTestExecutionCallback 12 11",
+        runTest(SpockStorage) == ["BeforeAllCallback null null",
+                                  "TestInstancePostProcessor 42 12",
+                                  "BeforeEachCallback 42 12 null",
+                                  "BeforeTestExecutionCallback 42 12 11",
                                   "test.body",
-                                  "AfterEachCallback 12 11",
+                                  "AfterEachCallback 42 12 11",
                                   "local value closed",
-                                  "AfterAllCallback 12",
-                                  "global value closed"]
+                                  "AfterAllCallback 42 12",
+                                  "global value closed",
+                                  "root value closed"]
     }
 }

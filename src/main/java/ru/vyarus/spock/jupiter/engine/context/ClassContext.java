@@ -1,5 +1,6 @@
 package ru.vyarus.spock.jupiter.engine.context;
 
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestInstances;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
@@ -17,8 +18,8 @@ import java.util.Optional;
  */
 public class ClassContext extends AbstractContext {
 
-    public ClassContext(final ExtensionRegistry registry, final SpecInfo spec) {
-        super(null, registry, spec.getReflection(), spec);
+    public ClassContext(final ExtensionContext root, final ExtensionRegistry registry, final SpecInfo spec) {
+        super(root, registry, spec.getReflection(), spec);
     }
 
     @Override

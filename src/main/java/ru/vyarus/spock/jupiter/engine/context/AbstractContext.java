@@ -80,7 +80,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
 
     @Override
     public Optional<Class<?>> getTestClass() {
-        return Optional.of(spec.getReflection());
+        return Optional.ofNullable(spec).map(SpecInfo::getReflection);
     }
 
     @Override
@@ -120,9 +120,10 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
 
     @Override
     public ExecutionMode getExecutionMode() {
-        final org.spockframework.runtime.model.parallel.ExecutionMode executionMode = spec.getExecutionMode()
-                // default value not set in spock
-                .orElse(org.spockframework.runtime.model.parallel.ExecutionMode.SAME_THREAD);
+        final org.spockframework.runtime.model.parallel.ExecutionMode executionMode =
+                Optional.ofNullable(spec)
+                        .map(info -> info.getExecutionMode().orElse(org.spockframework.runtime.model.parallel.ExecutionMode.SAME_THREAD))
+                        .orElse(org.spockframework.runtime.model.parallel.ExecutionMode.SAME_THREAD);
         return ExecutionMode.valueOf(executionMode.name());
     }
 
@@ -147,7 +148,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         valuesStore.closeAllStoredCloseableValues();
     }
 

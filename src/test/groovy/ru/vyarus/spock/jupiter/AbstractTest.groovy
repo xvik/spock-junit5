@@ -21,33 +21,33 @@ abstract class AbstractTest extends Specification {
         // configure JUL
         try (InputStream is = AbstractTest.class.getClassLoader().
                 getResourceAsStream("logging.properties")) {
-            LogManager.getLogManager().readConfiguration(is);
+            LogManager.getLogManager().readConfiguration(is)
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace()
         }
     }
 
-    List<String> runTest(Class test) {
-        ActionHolder.cleanup();
+    List<String> runTest(Class... tests) {
+        ActionHolder.cleanup()
         ACTIVE = true
         try {
             def runner = new EmbeddedSpecRunner()
             // do not rethrow exception - all errors will remain in holder
             runner.throwFailure = false
-            runner.runClass(test)
+            runner.runClasses(Arrays.asList(tests))
                     .allEvents().failed().stream()
                     // exceptions appended to events log
                     .forEach(event -> {
-                        Throwable err = event.getPayload(TestExecutionResult.class).get().getThrowable().get();
+                        Throwable err = event.getPayload(TestExecutionResult.class).get().getThrowable().get()
                         err.printStackTrace()
-                        ActionHolder.add("Error: (" + err.getClass().getSimpleName() + ") " + err.getMessage());
-                    });
+                        ActionHolder.add("Error: (" + err.getClass().getSimpleName() + ") " + err.getMessage())
+                    })
 //                    .containerEvents()
 //                    .assertStatistics(stats -> stats.failed(0).aborted(0));
-            return ActionHolder.getState();
+            return ActionHolder.getState()
         } finally {
             ACTIVE = false
-            ActionHolder.cleanup();
+            ActionHolder.cleanup()
         }
     }
 }

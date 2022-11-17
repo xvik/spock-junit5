@@ -20,26 +20,29 @@ public class StorageAccess implements
         AfterEachCallback,
         AfterAllCallback {
 
+    public static final String ROOT = "root_value";
     public static final String GLOBAL = "global_value";
     public static final String LOCAL = "value";
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-        ActionHolder.add("BeforeAllCallback " + getGlobalValue(context));
+        ActionHolder.add("BeforeAllCallback " + getRootValue(context) + " " + getGlobalValue(context));
+        getRootStore(context).put(ROOT, 42);
         getGlobalStore(context).put(GLOBAL, 12);
         // test auto closing
+        getRootStore(context).put("root_test", new ClosableValue("root"));
         getGlobalStore(context).put("test", new ClosableValue("global"));
     }
 
     @Override
     public void postProcessTestInstance(Object testInstance, ExtensionContext context) throws Exception {
-        ActionHolder.add("TestInstancePostProcessor " + getGlobalValue(context));
+        ActionHolder.add("TestInstancePostProcessor " + getRootValue(context) + " " + getGlobalValue(context));
         // method context not yet created
     }
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        ActionHolder.add("BeforeEachCallback " + getGlobalValue(context) + " " + getLocalValue(context));
+        ActionHolder.add("BeforeEachCallback " + getRootValue(context) + " " + getGlobalValue(context) + " " + getLocalValue(context));
         getLocalStore(context).put(LOCAL, 11);
         // test auto closing
         getLocalStore(context).put("test", new ClosableValue("local"));
@@ -47,17 +50,21 @@ public class StorageAccess implements
 
     @Override
     public void beforeTestExecution(ExtensionContext context) throws Exception {
-        ActionHolder.add("BeforeTestExecutionCallback " + getGlobalValue(context) + " " + getLocalValue(context));
+        ActionHolder.add("BeforeTestExecutionCallback " + getRootValue(context) + " " + getGlobalValue(context) + " " + getLocalValue(context));
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        ActionHolder.add("AfterEachCallback " + getGlobalValue(context) + " " + getLocalValue(context));
+        ActionHolder.add("AfterEachCallback " + getRootValue(context) + " " + getGlobalValue(context) + " " + getLocalValue(context));
     }
 
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
-        ActionHolder.add("AfterAllCallback " + getGlobalValue(context));
+        ActionHolder.add("AfterAllCallback " + getRootValue(context) + " " + getGlobalValue(context));
+    }
+
+    public static Object getRootValue(ExtensionContext context) {
+        return getRootStore(context).get(ROOT);
     }
 
     public static Object getGlobalValue(ExtensionContext context) {
@@ -66,6 +73,14 @@ public class StorageAccess implements
 
     public static Object getLocalValue(ExtensionContext context) {
         return getLocalStore(context).get(LOCAL);
+    }
+
+    public static ExtensionContext.Store getRootStore(ExtensionContext context) {
+        ExtensionContext rootContext = context;
+        do {
+            rootContext = rootContext.getRoot();
+        } while (rootContext.getParent().isPresent());
+        return rootContext.getStore(ExtensionContext.Namespace.create(rootContext.getUniqueId()));
     }
 
     public static ExtensionContext.Store getGlobalStore(ExtensionContext context) {
