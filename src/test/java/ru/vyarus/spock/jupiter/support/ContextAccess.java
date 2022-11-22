@@ -12,6 +12,16 @@ public class ContextAccess implements BeforeAllCallback, BeforeEachCallback {
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
+        // root context
+        ExtensionContext root = context.getRoot();
+        ActionHolder.add("root.id: "+ root.getUniqueId());
+        ActionHolder.add("root.display name: " + root.getDisplayName());
+        ActionHolder.add("root.parent: " + root.getParent().isPresent());
+        ActionHolder.add("root.root: " + root.getRoot().getDisplayName());
+        ActionHolder.add("root.lifecycle: " + root.getTestInstanceLifecycle().isPresent());
+        ActionHolder.add("root.exec mode: " + root.getExecutionMode());
+        ActionHolder.add("root.exception: " + root.getExecutionException().isPresent());
+
         // class context
         ActionHolder.add("class.id: " + context.getUniqueId());
         ActionHolder.add("class.display name: " + context.getDisplayName());

@@ -9,6 +9,7 @@ import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.ExtensionUtils;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
+import ru.vyarus.spock.jupiter.engine.context.EngineContext;
 import ru.vyarus.spock.jupiter.engine.execution.ConditionEvaluator;
 import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
 
@@ -70,6 +71,21 @@ import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
  */
 public class JunitExtensionSupport implements IGlobalExtension {
 
+    private EngineContext engineContext;
+
+    @Override
+    public void start() {
+        engineContext = new EngineContext();
+    }
+
+    @Override
+    public void stop() {
+        if (engineContext != null) {
+            engineContext.close();
+            engineContext = null;
+        }
+    }
+
     @Override
     public void visitSpec(final SpecInfo spec) {
         // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.prepare
@@ -84,7 +100,7 @@ public class JunitExtensionSupport implements IGlobalExtension {
         spec.getAllFixtureMethods().forEach(methodInfo -> ExtensionUtils
                 .registerExtensionsFromExecutableParameters(registry, methodInfo.getReflection()));
 
-        final ClassContext specContext = new ClassContext(registry, spec);
+        final ClassContext specContext = new ClassContext(engineContext, registry, spec);
 
         // condition check must be delayed to let spock extensions to work first because otherwise it is impossible
         // to prevent condition exception (required for tests)
