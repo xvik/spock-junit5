@@ -55,28 +55,32 @@ Maven:
 <dependency>
     <groupId>ru.vyarus</groupId>
     <artifactId>spock-junit5</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ru.vyarus:spock-junit5:1.1.0'
+implementation 'ru.vyarus:spock-junit5:1.2.0'
 ```
 
 ### Compatibility
 
-Compiled for java 8 (compatible up to java 17), junit 5.9.0
+Compiled for java 8 (compatible up to java 17), junit 5.9.1
 
 The only transitive library dependency is *junit-jupiter-api*: first of all, to bring in required junit annotations
 and to prevent usage with lower junit versions
 
 Spock | Junit | Version
 --------|-------|-----
+2.3     | 5.9.1 | 1.2.0
 2.2     | 5.9.0 | 1.1.0
 2.1     | 5.8.2 | 1.0.1
 2.0     | 5.7.2 | 1.0.1
+
+(spock version in table is the version used for compilation, but in, most cases, library will work with 
+lower version)
 
 ##### Snapshots
 
@@ -264,7 +268,7 @@ This limitation should not be a problem.
 
 ### Lifecycle
 
-Junit extensions support is implemented as global spock extensions and so it would be executed before any other
+Junit extensions support is implemented as global spock extension and so it would be executed before any other
 annotation-driven spock extension. 
 
 The following code shows all possible fixture methods and all possible interceptors
@@ -363,6 +367,32 @@ Junit extensions postfix means: (c) - class context, (m) - method context
 
 `ExecutionCondition` and `TestExecutionExceptionHandler` are also out of usual lifecycle.
 
+#### Contexts hierarchy
+
+Library use simplified junit contexts hierarchy:
+
+1. Global (engine) context
+2. Class context (created for each test class)
+3. Method context (created for each test method or data iteration)
+
+In junit there are other possible contexts (for some specific features), but they are nto useful in context of spock.
+
+Global context created once for all tests. It might be used as a global data store:
+
+```java
+// BeforeAllCallback
+public void beforeAll(ExtensionContext context) throws Exception {
+        // global storage (same for all tests)
+        Store store = context.getRoot().getStore(Namespace.create("ext"));
+        if(store.get("some") == null) {
+            // would be called only in first test with this extension 
+            // (for other tests value would be preserved) 
+            store.put("some", "val");
+        }
+}
+```
+
+NOTE: this works exactly the same as it works in junit jupiter (showed just to confirm  this ability). 
 
 ### Access storage from spock
 

@@ -1,3 +1,4 @@
+### 1.2.0 (2022-11-25)
 * Add root (engine-level) context to be able to use global storage in extensions (#44) 
   (context.getRoot().getStore())
 
