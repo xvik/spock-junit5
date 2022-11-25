@@ -74,13 +74,9 @@ and to prevent usage with lower junit versions
 
 Spock | Junit | Version
 --------|-------|-----
-2.3     | 5.9.1 | 1.2.0
-2.2     | 5.9.0 | 1.1.0
+2.2     | 5.9.1 | 1.2.0
 2.1     | 5.8.2 | 1.0.1
 2.0     | 5.7.2 | 1.0.1
-
-(spock version in table is the version used for compilation, but in, most cases, library will work with 
-lower version)
 
 ##### Snapshots
 
