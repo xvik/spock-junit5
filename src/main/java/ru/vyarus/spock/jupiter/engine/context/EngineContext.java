@@ -8,8 +8,10 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
- * Represents the extension root context.  This context is the root/parent to {@link ClassContext}
+ * Represents the extension root context (global). This context is the root/parent to {@link ClassContext}
  * and allows for maintaining a store/data spanning all tests within the Spock engine.
+ * <p> To access root context use {@link org.junit.jupiter.api.extension.ExtensionContext#getRoot()} in extensions
+ * (obtaining storage on root context would bring global storage - same for all tests).
  * <p>
  * Based on {@code org.junit.jupiter.engine.descriptor.JupiterEngineExtensionContext} from junit-jupiter-engine.
  *
@@ -29,7 +31,7 @@ public class EngineContext extends AbstractContext {
 
   @Override
   public String getDisplayName() {
-    return "Spock Engine Context";
+    return "Spock Framework";
   }
 
   @Override

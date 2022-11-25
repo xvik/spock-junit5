@@ -1,3 +1,6 @@
+* Add root (engine-level) context to be able to use global storage in extensions (#44) 
+  (context.getRoot().getStore())
+
 ### 1.1.0 (2022-09-08)
 * Update to junit 5.9 (spock 2.2 compatibility)
    - added [ExecutableInvoker](https://junit.org/junit5/docs/current/api/org.junit.jupiter.api/org/junit/jupiter/api/extension/ExecutableInvoker.html) support

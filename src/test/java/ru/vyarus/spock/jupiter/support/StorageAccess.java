@@ -21,69 +21,66 @@ public class StorageAccess implements
         AfterAllCallback {
 
     public static final String ROOT = "root_value";
-    public static final String GLOBAL = "global_value";
-    public static final String LOCAL = "value";
+    public static final String CLASS = "class_value";
+    public static final String METHOD = "value";
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-        ActionHolder.add("BeforeAllCallback " + getRootValue(context) + " " + getGlobalValue(context));
+        ActionHolder.add("BeforeAllCallback " + getRootValue(context) + " / " + getClassValue(context));
         getRootStore(context).put(ROOT, 42);
-        getGlobalStore(context).put(GLOBAL, 12);
+        getClassStore(context).put(CLASS, 12);
         // test auto closing
         getRootStore(context).put("root_test", new ClosableValue("root"));
-        getGlobalStore(context).put("test", new ClosableValue("global"));
+        getClassStore(context).put("test", new ClosableValue("class"));
     }
 
     @Override
     public void postProcessTestInstance(Object testInstance, ExtensionContext context) throws Exception {
-        ActionHolder.add("TestInstancePostProcessor " + getRootValue(context) + " " + getGlobalValue(context));
+        ActionHolder.add("TestInstancePostProcessor " + getRootValue(context) + " / " + getClassValue(context));
         // method context not yet created
     }
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        ActionHolder.add("BeforeEachCallback " + getRootValue(context) + " " + getGlobalValue(context) + " " + getLocalValue(context));
-        getLocalStore(context).put(LOCAL, 11);
+        ActionHolder.add("BeforeEachCallback " + getRootValue(context) + " / " + getClassValue(context) + " / " + getMethodValue(context));
+        getLocalStore(context).put(METHOD, 11);
         // test auto closing
-        getLocalStore(context).put("test", new ClosableValue("local"));
+        getLocalStore(context).put("test", new ClosableValue("method"));
     }
 
     @Override
     public void beforeTestExecution(ExtensionContext context) throws Exception {
-        ActionHolder.add("BeforeTestExecutionCallback " + getRootValue(context) + " " + getGlobalValue(context) + " " + getLocalValue(context));
+        ActionHolder.add("BeforeTestExecutionCallback " + getRootValue(context) + " / " + getClassValue(context) + " / " + getMethodValue(context));
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        ActionHolder.add("AfterEachCallback " + getRootValue(context) + " " + getGlobalValue(context) + " " + getLocalValue(context));
+        ActionHolder.add("AfterEachCallback " + getRootValue(context) + " / " + getClassValue(context) + " / " + getMethodValue(context));
     }
 
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
-        ActionHolder.add("AfterAllCallback " + getRootValue(context) + " " + getGlobalValue(context));
+        ActionHolder.add("AfterAllCallback " + getRootValue(context) + " / " + getClassValue(context));
     }
 
     public static Object getRootValue(ExtensionContext context) {
         return getRootStore(context).get(ROOT);
     }
 
-    public static Object getGlobalValue(ExtensionContext context) {
-        return getGlobalStore(context).get(GLOBAL);
+    public static Object getClassValue(ExtensionContext context) {
+        return getClassStore(context).get(CLASS);
     }
 
-    public static Object getLocalValue(ExtensionContext context) {
-        return getLocalStore(context).get(LOCAL);
+    public static Object getMethodValue(ExtensionContext context) {
+        return getLocalStore(context).get(METHOD);
     }
 
     public static ExtensionContext.Store getRootStore(ExtensionContext context) {
-        ExtensionContext rootContext = context;
-        do {
-            rootContext = rootContext.getRoot();
-        } while (rootContext.getParent().isPresent());
+        ExtensionContext rootContext = context.getRoot();
         return rootContext.getStore(ExtensionContext.Namespace.create(rootContext.getUniqueId()));
     }
 
-    public static ExtensionContext.Store getGlobalStore(ExtensionContext context) {
+    public static ExtensionContext.Store getClassStore(ExtensionContext context) {
         return context.getStore(ExtensionContext.Namespace.create(context.getRequiredTestClass()));
     }
 

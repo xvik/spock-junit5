@@ -18,11 +18,17 @@ public class JupiterContextTest extends AbstractJupiterTest {
                 Arrays.asList(
                         "root.id: [engine:junit-jupiter]",
                         "root.display name: JUnit Jupiter",
+                        "root.element: false",
                         "root.parent: false",
                         "root.root: JUnit Jupiter",
                         "root.lifecycle: false",
                         "root.exec mode: SAME_THREAD",
                         "root.exception: false",
+                        "root.test class: false",
+                        "root.test method: false",
+                        "root.tags: []",
+                        "root.test instance: false",
+                        "root.test instances: false",
 
                         "class.id: [engine:junit-jupiter]/[class:playground.tests.JupiterContext]",
                         "class.display name: JupiterContext",

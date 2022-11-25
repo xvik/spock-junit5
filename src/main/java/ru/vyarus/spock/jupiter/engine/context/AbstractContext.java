@@ -20,8 +20,9 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * Extension context object is passed to all extensions as parameter. Context is hierarchical: first level used
- * for spec (class level) and one context for each spec method. In case of spock data-driven methods, each iteration
+ * Extension context object is passed to all extensions as parameter. Context is hierarchical: first level is a global
+ * context (suitable for global storage), next goes spec context (class level) and the last one is method context,
+ * created for each spec method. In case of spock data-driven methods, each iteration
  * will have a fresh method (feature) context (because extension instances must be renewed - each iteration is a
  * separate test run).
  * <p>
@@ -75,7 +76,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
 
     @Override
     public Optional<AnnotatedElement> getElement() {
-        return Optional.of(element);
+        return Optional.ofNullable(element);
     }
 
     @Override

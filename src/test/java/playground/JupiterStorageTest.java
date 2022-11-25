@@ -16,15 +16,15 @@ public class JupiterStorageTest extends AbstractJupiterTest {
     void testStorageAccess() {
         Assertions.assertEquals(runTest(JupiterStorage.class),
                 Arrays.asList(
-                        "BeforeAllCallback null null",
-                        "TestInstancePostProcessor 42 12",
-                        "BeforeEachCallback 42 12 null",
-                        "BeforeTestExecutionCallback 42 12 11",
+                        "BeforeAllCallback null / null",
+                        "TestInstancePostProcessor 42 / 12",
+                        "BeforeEachCallback 42 / 12 / null",
+                        "BeforeTestExecutionCallback 42 / 12 / 11",
                         "test.body",
-                        "AfterEachCallback 42 12 11",
-                        "local value closed",
-                        "AfterAllCallback 42 12",
-                        "global value closed",
+                        "AfterEachCallback 42 / 12 / 11",
+                        "method value closed",
+                        "AfterAllCallback 42 / 12",
+                        "class value closed",
                         "root value closed"));
     }
 }
