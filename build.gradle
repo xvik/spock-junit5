@@ -19,7 +19,7 @@ wrapper {
 
 repositories { mavenLocal(); mavenCentral() }
 dependencies {
-    implementation platform('org.junit:junit-bom:5.10.0')
+    implementation platform('org.junit:junit-bom:5.10.1')
 
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.0'
 
