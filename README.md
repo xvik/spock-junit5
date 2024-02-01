@@ -246,6 +246,68 @@ Not supported:
 
 Of course, constructor parameters injection is not supported because spock does not allow spec constructors.
 
+### Spring-boot
+
+Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module) 
+**is not required** for spring-boot tests: just use spring's junit 5 extensions
+
+Example MVC test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-boot-hello-world/src/test/java/com/mkyong/HelloControllerTests.java)):
+
+```groovy
+@SpringBootTest
+@AutoConfigureMockMvc
+class ControllerTest extends Specification {
+
+    @Autowired
+    private MockMvc mvc
+
+    def "Test welcome ok"() {
+
+        mvc.perform(MockMvcRequestBuilders.get("/").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(equalTo("Hello World, Spring Boot!")))
+
+        expect:
+        // ofc. it's a bad spock test, but just to show that extensions work the same way
+        true
+    }
+}
+```
+
+Example JPA test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-data-jpa/src/test/java/com/mkyong/BookRepositoryTest.java)):
+
+```groovy
+@DataJpaTest
+class BootTest extends Specification {
+  
+    @Autowired
+    TestEntityManager testEM
+    @Autowired
+    BookRepository bookRepository
+
+    void setup() {
+        bookRepository.deleteAll()
+        bookRepository.flush()
+        testEM.clear()
+    }
+
+    def "Test save"() {
+
+        when:
+        Book b1 = new Book("Book A", BigDecimal.valueOf(9.99), LocalDate.of(2023, 8, 31))
+        bookRepository.save(b1)
+        Long savedBookID = b1.getId()
+        Book book = bookRepository.findById(savedBookID).orElseThrow()
+
+        then:
+        savedBookID == book.getId()
+        "Book A" == book.getTitle()
+        BigDecimal.valueOf(9.99) == book.getPrice()
+        LocalDate.of(2023, 8, 31) == book.getPublishDate()
+    }
+}
+```
+
 ### Spock @Shared state 
 
 **Junit extensions would not be able to initialize `@Shared` fields**. So just don't use `@Shared` 
