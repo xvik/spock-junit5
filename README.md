@@ -246,10 +246,19 @@ Not supported:
 
 Of course, constructor parameters injection is not supported because spock does not allow spec constructors.
 
-### Spring-boot
+### Usage with Spring-Boot
+
+Only spock and spock-junit5 dependencies would be required:
+
+```groovy
+testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+testImplementation 'ru.vyarus:spock-junit5:1.2.0'
+```
 
 Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module) 
-**is not required** for spring-boot tests: just use spring's junit 5 extensions
+**is not required** for spring-boot tests!
+
+Now use spring junit extensions **the same way** as in war junit
 
 Example MVC test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-boot-hello-world/src/test/java/com/mkyong/HelloControllerTests.java)):
 
