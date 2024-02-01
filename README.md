@@ -258,7 +258,7 @@ testImplementation 'ru.vyarus:spock-junit5:1.2.0'
 Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module) 
 **is not required** for spring-boot tests!
 
-Now use spring junit extensions **the same way** as in war junit
+Now use spring junit extensions **the same way** as in raw junit
 
 Example MVC test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-boot-hello-world/src/test/java/com/mkyong/HelloControllerTests.java)):
 
