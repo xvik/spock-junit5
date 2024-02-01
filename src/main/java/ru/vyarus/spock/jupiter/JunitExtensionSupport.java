@@ -17,7 +17,7 @@ import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
  * Global extension applied to all specs. Searches for declared junit extensions and calls them simulating junit
  * extensions lifecycle. Supported all the same declaration methods as with junit:
  * <ul>
- *     <li>{@code @ExtendsWith} declaration on class, method, field or parameter</li>
+ *     <li>{@code @ExtendWith} declaration on class, method, field or parameter</li>
  *     <li>Custom annotations on class, method, field or parameter</li>
  *     <li>{@code @RegisterExtension} on static or non-static fields</li>
  *     <li>Parameters injection into fixture and test methods</li>
