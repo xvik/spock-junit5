@@ -1,5 +1,6 @@
 package ru.vyarus.spock.jupiter.interceptor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
@@ -53,6 +54,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     private final IMethodInterceptor fixtureMethodsInterceptor;
 
 
+    @SuppressFBWarnings("CT_CONSTRUCTOR_THROW")
     public ExtensionLifecycleMerger(final ClassContext context) {
         this.context = context;
 

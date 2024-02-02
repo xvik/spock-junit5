@@ -1,5 +1,6 @@
 package ru.vyarus.spock.jupiter.engine.context;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.junit.platform.commons.util.Preconditions;
@@ -25,6 +26,7 @@ public class DefaultParameterContext implements ParameterContext {
     private final int index;
     private final Optional<Object> target;
 
+    @SuppressFBWarnings("CT_CONSTRUCTOR_THROW")
     public DefaultParameterContext(final Parameter parameter, final int index, final Optional<Object> target) {
         Preconditions.condition(index >= 0, "index must be greater than or equal to zero");
         this.parameter = Preconditions.notNull(parameter, "parameter must not be null");
