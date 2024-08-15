@@ -19,7 +19,7 @@ wrapper {
 
 repositories { mavenLocal(); mavenCentral() }
 dependencies {
-    implementation platform('org.junit:junit-bom:5.10.3')
+    implementation platform('org.junit:junit-bom:5.11.0')
 
     // direct dependency to prevent usage with older junit api
     implementation 'org.junit.jupiter:junit-jupiter-api'
