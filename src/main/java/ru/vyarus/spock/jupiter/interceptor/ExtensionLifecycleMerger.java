@@ -1,6 +1,5 @@
 package ru.vyarus.spock.jupiter.interceptor;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
@@ -54,7 +53,6 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     private final IMethodInterceptor fixtureMethodsInterceptor;
 
 
-    @SuppressFBWarnings("CT_CONSTRUCTOR_THROW")
     public ExtensionLifecycleMerger(final ClassContext context) {
         this.context = context;
 
@@ -198,7 +196,6 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         logger.debug(() -> "Spock " + context.getSpec().getReflection().getSimpleName() + "." + name);
     }
 
-    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     private void injectArguments(final IMethodInvocation invocation, final AbstractContext context) {
         final Method method = invocation.getMethod().getReflection();
         final Object[] arguments = invocation.getArguments();

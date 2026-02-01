@@ -63,7 +63,7 @@ import static org.junit.platform.commons.util.ReflectionUtils.tryToReadFieldValu
  * @author Vyacheslav Rusakov
  * @since 30.11.2021
  */
-@SuppressWarnings({"checkstyle:MultipleStringLiterals", "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects"})
+@SuppressWarnings({"checkstyle:MultipleStringLiterals", "PMD.ExcessiveImports"})
 @SuppressFBWarnings("MS_MUTABLE_COLLECTION_PKGPROTECT")
 public final class ExtensionUtils {
 

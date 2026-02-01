@@ -3,15 +3,18 @@ plugins {
     id 'jacoco'
     id 'project-report'
     id 'signing'
-    id 'ru.vyarus.java-lib' version '2.4.0'
+    id 'ru.vyarus.java-lib' version '3.0.0'
     id 'ru.vyarus.github-info' version '2.0.0'
-    id 'ru.vyarus.quality' version '5.0.0'
+    id 'ru.vyarus.quality' version '6.0.1'
+    id 'com.github.spotbugs' version '6.4.8'
     id 'net.researchgate.release' version '3.0.2'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
-    id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'com.github.ben-manes.versions' version '0.53.0'
 }
 
-sourceCompatibility = 1.8
+java {
+    sourceCompatibility = 1.8
+}
 
 wrapper {
     gradleVersion = '8.14.4'
@@ -39,14 +42,18 @@ github {
     license = 'MIT'
 }
 
-pom {
-    developers {
-        developer {
-            id 'xvik'
-            name 'Vyacheslav Rusakov'
-            email 'vyarus@gmail.com'
+maven {
+    pom {
+        developers {
+            developer {
+                id = 'xvik'
+                name = 'Vyacheslav Rusakov'
+                email = 'vyarus@gmail.com'
+            }
         }
     }
+    // use only direct dependencies in the generated pom, removing BOM mentions
+    removeDependencyManagement()
 }
 
 javaLib {
@@ -54,13 +61,15 @@ javaLib {
     autoModuleName = 'ru.vyarus.spock.junit5'
     // don't publish gradle metadata artifact
     withoutGradleMetadata()
-    // use only direct dependencies in the generated pom, removing BOM mentions
-    pom.removeDependencyManagement()
 }
+
+
 
 nexusPublishing {
     repositories {
         sonatype {
+            nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
+            snapshotRepositoryUrl = uri("https://central.sonatype.com/repository/maven-snapshots/")
             username = findProperty('sonatypeUser')
             password = findProperty('sonatypePassword')
         }
@@ -68,7 +77,9 @@ nexusPublishing {
 }
 
 // skip signing for jitpack (snapshots)
-tasks.withType(Sign) {onlyIf { !System.getenv('JITPACK') }}
+tasks.withType(Sign).configureEach {
+    onlyIf { !System.getenv('JITPACK') && !it.version.endsWith('-SNAPSHOT') }
+}
 
 // Required signing properties for release: signing.keyId, signing.password and signing.secretKeyRingFile
 // (https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials)
@@ -87,7 +98,7 @@ test {
     useJUnitPlatform()
     testLogging {
         events 'skipped', 'failed'
-        exceptionFormat 'full'
+        exceptionFormat = 'full'
     }
     maxHeapSize = '512m'
 }

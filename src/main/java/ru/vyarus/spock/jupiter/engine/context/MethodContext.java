@@ -54,4 +54,5 @@ public class MethodContext extends AbstractContext {
     public Optional<TestInstances> getTestInstances() {
         return Optional.ofNullable(instances);
     }
+
 }

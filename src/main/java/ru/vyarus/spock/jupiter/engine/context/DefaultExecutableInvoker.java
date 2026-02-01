@@ -47,7 +47,6 @@ public class DefaultExecutableInvoker implements ExecutableInvoker {
         return ReflectionUtils.invokeMethod(method, target, arguments);
     }
 
-    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     private Object[] collectArguments(final Executable executable, final Object target, final int start) {
         final Parameter[] parameters = executable.getParameters();
         if (parameters.length == 0) {

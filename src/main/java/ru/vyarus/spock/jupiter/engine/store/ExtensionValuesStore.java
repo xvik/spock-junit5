@@ -28,7 +28,6 @@ import static org.junit.platform.commons.util.ReflectionUtils.isAssignableTo;
  * @author Vyacheslav Rusakov
  * @since 20.12.2021
  */
-@SuppressWarnings("PMD.CompareObjectsWithEquals")
 public class ExtensionValuesStore {
 
     private static final Comparator<StoredValue> REVERSE_INSERT_ORDER = Comparator.<StoredValue, Integer>comparing(
