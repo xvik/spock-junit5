@@ -2,6 +2,7 @@ package ru.vyarus.spock.jupiter
 
 import org.junit.platform.engine.TestExecutionResult
 import ru.vyarus.spock.jupiter.support.ActionHolder
+import ru.vyarus.spock.jupiter.util.JupiterResultFile
 import spock.lang.Specification
 import spock.util.EmbeddedSpecRunner
 
@@ -49,5 +50,26 @@ abstract class AbstractTest extends Specification {
             ACTIVE = false
             ActionHolder.cleanup()
         }
+    }
+
+    // obviously sock and jupiter test method names couldn't be the same
+    List<String> runTestWithVerification(Class jupiterTest, Class test, String... replacements) {
+        return runTestWithVerification([jupiterTest] as Class[], [test] as Class[], replacements);
+    }
+
+    List<String> runTestWithVerification(Class[] jupiterTests, Class[] test, String... replacements) {
+        List<String> res = runTest(test)
+        verify(jupiterTests, res, replacements)
+        return res
+    }
+
+    boolean verify(Class jupiterTests, List<String> result, String... replacements) {
+        return verify([jupiterTests] as Class[], result, replacements)
+    }
+
+    boolean verify(Class[] jupiterTests, List<String> result, String... replacements) {
+        List<String> reference = JupiterResultFile.load(jupiterTests, replacements)
+        assert result == reference
+        true
     }
 }

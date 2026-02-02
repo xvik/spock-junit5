@@ -1,0 +1,8 @@
+ParameterExtension ru.vyarus.spock.jupiter.support.ExecutableInvokerUsage$Inst
+ParameterExtension getStat
+getStat==11
+ParameterExtension get
+get==22
+ParameterExtension ru.vyarus.spock.jupiter.support.ExecutableInvokerUsage$Inst$Inn
+ParameterExtension get
+get==33

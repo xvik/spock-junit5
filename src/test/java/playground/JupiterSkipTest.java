@@ -25,7 +25,7 @@ public class JupiterSkipTest extends AbstractJupiterTest {
     void testMethodSkip() {
         Assertions.assertEquals(runTest(JupiterSkipMethod.class),
                 Arrays.asList(
-                        "test.body2",
-                        "SkipCondition"));
+                        "SkipCondition",
+                        "test.body2"));
     }
 }

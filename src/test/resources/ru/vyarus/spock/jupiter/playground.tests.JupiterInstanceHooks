@@ -1,0 +1,5 @@
+TestInstancePostProcessor true false
+BeforeTestExecutionCallback
+test.body
+AfterTestExecutionCallback
+TestInstancePreDestroyCallback true

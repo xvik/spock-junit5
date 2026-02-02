@@ -1,7 +1,9 @@
 package playground.tests;
 
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ru.vyarus.spock.jupiter.support.ActionHolder;
 import ru.vyarus.spock.jupiter.support.SkipCondition;
@@ -11,6 +13,7 @@ import ru.vyarus.spock.jupiter.support.SkipCondition;
  * @since 27.12.2021
  */
 @Disabled
+@TestMethodOrder(MethodOrderer.MethodName.class) // force methods order
 public class JupiterSkipMethod {
 
     @Test

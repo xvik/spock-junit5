@@ -1,5 +1,7 @@
 package ru.vyarus.spock.jupiter
 
+import playground.tests.JupiterParamContextAccess
+import playground.tests.JupiterParameterInjection
 import ru.vyarus.spock.jupiter.test.*
 
 /**
@@ -11,22 +13,29 @@ class SpockParamsTest extends AbstractTest {
     def "Check params injection"() {
 
         expect: 'params injected'
-        runTest(SpockParameterInjection) == ["BeforeAllCallback",
-                                             "ParameterExtension setupSpec",
-                                             "test.beforeAll 11",
-                                             "BeforeEachCallback",
-                                             "ParameterExtension setup",
-                                             "test.before 11",
-                                             "BeforeTestExecutionCallback",
-                                             "ParameterExtension \$spock_feature_0_0",
-                                             "test.body 11",
-                                             "AfterTestExecutionCallback",
-                                             "ParameterExtension cleanup",
-                                             "test.after 11",
-                                             "AfterEachCallback",
-                                             "ParameterExtension cleanupSpec",
-                                             "test.afterAll 11",
-                                             "AfterAllCallback"]
+        runTestWithVerification(JupiterParameterInjection, SpockParameterInjection,
+                "ParameterExtension beforeAll", "ParameterExtension setupSpec",
+                "ParameterExtension setUp", "ParameterExtension setup",
+                "ParameterExtension sampleTest", "ParameterExtension \$spock_feature_0_0",
+                "ParameterExtension tearDown", "ParameterExtension cleanup",
+                "ParameterExtension afterAll", "ParameterExtension cleanupSpec")
+
+                == ["BeforeAllCallback",
+                    "ParameterExtension setupSpec",
+                    "test.beforeAll 11",
+                    "BeforeEachCallback",
+                    "ParameterExtension setup",
+                    "test.before 11",
+                    "BeforeTestExecutionCallback",
+                    "ParameterExtension \$spock_feature_0_0",
+                    "test.body 11",
+                    "AfterTestExecutionCallback",
+                    "ParameterExtension cleanup",
+                    "test.after 11",
+                    "AfterEachCallback",
+                    "ParameterExtension cleanupSpec",
+                    "test.afterAll 11",
+                    "AfterAllCallback"]
     }
 
     def "Check competing params injection"() {
@@ -59,12 +68,16 @@ class SpockParamsTest extends AbstractTest {
     def "Check param context"() {
 
         expect: 'context values ok'
-        runTest(SpockParamContextAccess) == ["param.name arg0",
-                                             "param.exec \$spock_feature_0_0",
-                                             "param.index 0",
-                                             "param.target SpockParamContextAccess",
-                                             "param.annotation true true 1",
-                                             "test.body 12"
+        runTestWithVerification(JupiterParamContextAccess, SpockParamContextAccess,
+                "param.exec sampleTest", "param.exec \$spock_feature_0_0",
+                "param.target JupiterParamContextAccess", "param.target SpockParamContextAccess")
+
+                == ["param.name arg0",
+                    "param.exec \$spock_feature_0_0",
+                    "param.index 0",
+                    "param.target SpockParamContextAccess",
+                    "param.annotation true true 1",
+                    "test.body 12"
         ]
     }
 }

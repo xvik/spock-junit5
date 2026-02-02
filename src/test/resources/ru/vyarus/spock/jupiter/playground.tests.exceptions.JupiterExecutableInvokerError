@@ -1,0 +1,1 @@
+Error: (ParameterResolutionException) No ParameterResolver registered for parameter [java.lang.Integer arg0] in constructor [public ru.vyarus.spock.jupiter.support.ExecutableInvokerUsage$Inst(java.lang.Integer)].

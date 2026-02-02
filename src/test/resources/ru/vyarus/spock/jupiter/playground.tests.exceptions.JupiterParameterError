@@ -1,0 +1,7 @@
+BeforeAllCallback
+BeforeEachCallback
+BeforeTestExecutionCallback
+AfterTestExecutionCallback
+AfterEachCallback
+AfterAllCallback
+Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [void playground.tests.exceptions.JupiterParameterError.sampleTest(java.lang.Integer)]: problem

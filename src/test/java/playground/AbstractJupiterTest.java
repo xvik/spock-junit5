@@ -5,6 +5,7 @@ import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import ru.vyarus.spock.jupiter.support.ActionHolder;
+import ru.vyarus.spock.jupiter.util.JupiterResultFile;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,9 +38,14 @@ public abstract class AbstractJupiterTest {
                     });
 //                    .containerEvents()
 //                    .assertStatistics(stats -> stats.failed(0).aborted(0));
-            return ActionHolder.getState();
+            return writeState(ActionHolder.getState(), tests);
         } finally {
             ActionHolder.cleanup();
         }
+    }
+
+    private List<String> writeState(List<String> state, Class<?>... tests) {
+        JupiterResultFile.store(state, tests);
+        return state;
     }
 }

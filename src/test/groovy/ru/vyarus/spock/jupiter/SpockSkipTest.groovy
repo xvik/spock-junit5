@@ -1,6 +1,6 @@
 package ru.vyarus.spock.jupiter
 
-
+import playground.tests.JupiterSkipMethod
 import ru.vyarus.spock.jupiter.test.SpockSkipClass
 import ru.vyarus.spock.jupiter.test.SpockSkipMethod
 
@@ -19,7 +19,8 @@ class SpockSkipTest extends AbstractTest {
     def "Check method skip"() {
 
         expect: 'method skipped'
-        runTest(SpockSkipMethod) == ["SkipCondition",
-                                     "test.body2"]
+        runTestWithVerification(JupiterSkipMethod, SpockSkipMethod)
+                == ["SkipCondition",
+                    "test.body2"]
     }
 }
