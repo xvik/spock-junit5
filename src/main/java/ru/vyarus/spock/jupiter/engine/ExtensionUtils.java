@@ -20,9 +20,11 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.TestInstanceFactory;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
+import org.junit.jupiter.api.extension.TestInstancePreConstructCallback;
 import org.junit.jupiter.api.extension.TestInstancePreDestroyCallback;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import org.junit.jupiter.api.extension.TestWatcher;
+import org.junit.platform.commons.PreconditionViolationException;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.commons.util.Preconditions;
@@ -51,13 +53,13 @@ import static org.junit.platform.commons.util.AnnotationUtils.findAnnotation;
 import static org.junit.platform.commons.util.AnnotationUtils.findRepeatableAnnotations;
 import static org.junit.platform.commons.util.AnnotationUtils.isAnnotated;
 import static org.junit.platform.commons.util.ReflectionUtils.HierarchyTraversalMode.TOP_DOWN;
-import static org.junit.platform.commons.util.ReflectionUtils.findFields;
 import static org.junit.platform.commons.util.ReflectionUtils.isAssignableTo;
+import static org.junit.platform.commons.util.ReflectionUtils.streamFields;
 import static org.junit.platform.commons.util.ReflectionUtils.tryToReadFieldValue;
 
 /**
  * Extensions recognition logic. Mostly copy of jupiter implementation methods (with slight adoptions) to preserve
- * exactly the same behaviour. Started as a subset of {@code org.junit.jupiter.engine.descriptor.ExtensionUtils},
+ * exactly the same behavior. Started as a subset of {@code org.junit.jupiter.engine.descriptor.ExtensionUtils},
  * but also include some descriptors logic (descriptors concept itself is not required in spock context).
  *
  * @author Vyacheslav Rusakov
@@ -88,6 +90,7 @@ public final class ExtensionUtils {
 
             // impossible to add (spock does not allow this)
             TestInstanceFactory.class,
+            TestInstancePreConstructCallback.class,
             // could be supported, but what for?
             LifecycleMethodExecutionExceptionHandler.class,
             InvocationInterceptor.class,
@@ -98,6 +101,10 @@ public final class ExtensionUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionUtils.class);
 
     private static final Comparator<Field> ORDER_COMPARATOR = Comparator.comparingInt(ExtensionUtils::getOrder);
+
+    private static final Predicate<Field> FIELD_EXTENSION =
+            field -> isAnnotated(field, RegisterExtension.class)
+                    || !findRepeatableAnnotations(field, ExtendWith.class).isEmpty();
 
     private ExtensionUtils() {
     }
@@ -111,7 +118,7 @@ public final class ExtensionUtils {
     // source: org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.populateNewExtensionRegistry
     // (aggregates several deeper methods)
     public static ExtensionRegistry createMethodRegistry(final ExtensionRegistry root, final Method method) {
-        final Stream<Class<? extends Extension>> extensions = streamExtensionTypes(method);
+        final Stream<Class<? extends Extension>> extensions = streamDeclarativeExtensionTypes(method);
         final ExtensionRegistry registry = new ExtensionRegistry(root);
         extensions.forEach(registry::registerExtension);
 
@@ -121,64 +128,65 @@ public final class ExtensionUtils {
     }
 
     public static Stream<Class<? extends Extension>> findClassExtensions(final Class<?> testClass) {
-        return streamExtensionTypes(findRepeatableAnnotations(testClass, ExtendWith.class));
+        return streamDeclarativeExtensionTypes(findRepeatableAnnotations(testClass, ExtendWith.class));
     }
 
     /**
-     * Register extensions using the supplied registrar from fields in the supplied
-     * class that are annotated with {@link ExtendWith @ExtendWith} or
-     * {@link RegisterExtension @RegisterExtension}.
+     * Register extensions using the supplied registrar from static fields in
+     * the supplied class that are annotated with {@link ExtendWith @ExtendWith}
+     * or {@link RegisterExtension @RegisterExtension}.
      *
      * <p>The extensions will be sorted according to {@link Order @Order} semantics
      * prior to registration.
      *
      * @param registrar the registrar with which to register the extensions; never {@code null}
      * @param clazz     the class or interface in which to find the fields; never {@code null}
-     * @param instance  the instance of the supplied class; may be {@code null}
-     *                  when searching for {@code static} fields in the class
+     * @since 5.11
      */
-    // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromFields
-    public static void registerExtensionsFromFields(final ExtensionRegistry registrar,
-                                                    final Class<?> clazz,
-                                                    final Object instance) {
-        Preconditions.notNull(registrar, "ExtensionRegistry must not be null");
-        Preconditions.notNull(clazz, "Class must not be null");
-
-        final Predicate<Field> predicate =
-                (instance == null ? ReflectionUtils::isStatic : ReflectionUtils::isNotStatic);
-
-        findFields(clazz, predicate, TOP_DOWN).stream()
-                .sorted(ORDER_COMPARATOR)
+    // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromStaticFields
+    public static void registerExtensionsFromStaticFields(final ExtensionRegistry registrar, final Class<?> clazz) {
+        streamExtensionRegisteringFields(clazz, ReflectionUtils::isStatic)
                 .forEach(field -> {
-                    final List<Class<? extends Extension>> extensionTypes =
-                            streamExtensionTypes(field).collect(toList());
+                    final List<Class<? extends Extension>> extensionTypes = streamDeclarativeExtensionTypes(field)
+                            .collect(toList());
                     final boolean isExtendWithPresent = !extensionTypes.isEmpty();
-                    final boolean isRegisterExtensionPresent = isAnnotated(field, RegisterExtension.class);
+
                     if (isExtendWithPresent) {
                         extensionTypes.forEach(registrar::registerExtension);
                     }
-                    if (isRegisterExtensionPresent) {
-                        tryToReadFieldValue(field, instance).ifSuccess(value -> {
-                            Preconditions.condition(value instanceof Extension, () -> String.format(
-                                    "Failed to register extension via @RegisterExtension field [%s]: field value's "
-                                            + "type [%s] must implement an [%s] API.",
-                                    field, (value != null ? value.getClass().getName() : null),
-                                    Extension.class.getName()));
+                    if (isAnnotated(field, RegisterExtension.class)) {
+                        final Extension extension = readAndValidateExtensionFromField(field, null, extensionTypes);
+                        registrar.registerExtension(extension, field);
+                    }
+                });
+    }
 
-                            if (isExtendWithPresent) {
-                                final Class<?> valueType = value.getClass();
-                                extensionTypes.forEach(extensionType -> {
-                                    Preconditions.condition(!extensionType.equals(valueType),
-                                            () -> String.format("Failed to register extension via field [%s]. "
-                                                            + "The field registers an extension of type [%s] via "
-                                                            + "@RegisterExtension and @ExtendWith, but only one "
-                                                            + "registration of a given extension type is permitted.",
-                                                    field, valueType.getName()));
-                                });
-                            }
+    /**
+     * Register extensions using the supplied registrar from instance fields in
+     * the supplied class that are annotated with {@link ExtendWith @ExtendWith}
+     * or {@link RegisterExtension @RegisterExtension}.
+     *
+     * <p>The extensions will be sorted according to {@link Order @Order} semantics
+     * prior to registration.
+     *
+     * @param registrar the registrar with which to register the extensions; never {@code null}
+     * @param clazz     the class or interface in which to find the fields; never {@code null}
+     * @since 5.11
+     */
+    // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromInstanceFields
+    public static void registerExtensionsFromInstanceFields(final ExtensionRegistry registrar, final Class<?> clazz) {
+        streamExtensionRegisteringFields(clazz, ReflectionUtils::isNotStatic)
+                .forEach(field -> {
+                    final List<Class<? extends Extension>> extensionTypes = streamDeclarativeExtensionTypes(field)
+                            .collect(toList());
+                    final boolean isExtendWithPresent = !extensionTypes.isEmpty();
 
-                            registrar.registerExtension((Extension) value, field);
-                        });
+                    if (isExtendWithPresent) {
+                        extensionTypes.forEach(registrar::registerExtension);
+                    }
+                    if (isAnnotated(field, RegisterExtension.class)) {
+                        registrar.registerUninitializedExtension(clazz, field,
+                                instance -> readAndValidateExtensionFromField(field, instance, extensionTypes));
                     }
                 });
     }
@@ -202,7 +210,7 @@ public final class ExtensionUtils {
 
         Arrays.stream(executable.getParameters())
                 .map(parameter -> findRepeatableAnnotations(parameter, index.getAndIncrement(), ExtendWith.class))
-                .flatMap(ExtensionUtils::streamExtensionTypes)
+                .flatMap(ExtensionUtils::streamDeclarativeExtensionTypes)
                 .forEach(registrar::registerExtension);
     }
 
@@ -266,6 +274,32 @@ public final class ExtensionUtils {
         return executable instanceof Constructor ? "constructor" : "method";
     }
 
+    private static Extension readAndValidateExtensionFromField(
+            final Field field,
+            final Object instance,
+            final List<Class<? extends Extension>> declarativeExtensionTypes) {
+        final Object value = tryToReadFieldValue(field, instance)
+                .getOrThrow(e -> new PreconditionViolationException(
+                        String.format("Failed to read @RegisterExtension field [%s]", field), e));
+
+        Preconditions.condition(value instanceof Extension, () -> String.format(
+                "Failed to register extension via @RegisterExtension field [%s]: field value's type [%s] "
+                        + "must implement an [%s] API.",
+                field, (value != null ? value.getClass().getName() : null), Extension.class.getName()));
+
+        declarativeExtensionTypes.forEach(extensionType -> {
+            final Class<?> valueType = value.getClass();
+            Preconditions.condition(!extensionType.equals(valueType),
+                    () -> String.format(
+                            "Failed to register extension via field [%s]. "
+                                    + "The field registers an extension of type [%s] via @RegisterExtension and "
+                                    + "@ExtendWith, but only one registration of a given extension type is permitted.",
+                            field, valueType.getName()));
+        });
+
+        return (Extension) value;
+    }
+
     private static void validateResolvedType(final Parameter parameter,
                                              final Object value,
                                              final Executable executable,
@@ -297,11 +331,18 @@ public final class ExtensionUtils {
         return findAnnotation(field, Order.class).map(Order::value).orElse(Order.DEFAULT);
     }
 
-    private static Stream<Class<? extends Extension>> streamExtensionTypes(final AnnotatedElement annotatedElement) {
-        return streamExtensionTypes(findRepeatableAnnotations(annotatedElement, ExtendWith.class));
+    private static Stream<Field> streamExtensionRegisteringFields(final Class<?> clazz,
+                                                                  final Predicate<Field> predicate) {
+        return streamFields(clazz, predicate.and(FIELD_EXTENSION), TOP_DOWN)
+                .sorted(ORDER_COMPARATOR);
     }
 
-    private static Stream<Class<? extends Extension>> streamExtensionTypes(
+    private static Stream<Class<? extends Extension>> streamDeclarativeExtensionTypes(
+            final AnnotatedElement annotatedElement) {
+        return streamDeclarativeExtensionTypes(findRepeatableAnnotations(annotatedElement, ExtendWith.class));
+    }
+
+    private static Stream<Class<? extends Extension>> streamDeclarativeExtensionTypes(
             final List<ExtendWith> extendWithAnnotations) {
         return extendWithAnnotations.stream().map(ExtendWith::value).flatMap(Arrays::stream);
     }

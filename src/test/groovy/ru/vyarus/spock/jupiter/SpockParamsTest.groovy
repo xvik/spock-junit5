@@ -15,9 +15,9 @@ class SpockParamsTest extends AbstractTest {
         expect: 'params injected'
         runTestWithVerification(JupiterParameterInjection, SpockParameterInjection,
                 "ParameterExtension beforeAll", "ParameterExtension setupSpec",
-                "ParameterExtension setUp", "ParameterExtension setup",
-                "ParameterExtension sampleTest", "ParameterExtension \$spock_feature_0_0",
-                "ParameterExtension tearDown", "ParameterExtension cleanup",
+                "setUp", "setup",
+                "sampleTest", "\$spock_feature_0_0",
+                "tearDown", "cleanup",
                 "ParameterExtension afterAll", "ParameterExtension cleanupSpec")
 
                 == ["BeforeAllCallback",
@@ -41,9 +41,10 @@ class SpockParamsTest extends AbstractTest {
     def "Check competing params injection"() {
 
         expect: 'params injection error'
-        runTest(SpockCompetingParameterInjection) == ["ParameterExtension \$spock_feature_0_0",
-                                                      "ParameterExtension2 \$spock_feature_0_0",
-                                                      "Error: (ParameterResolutionException) Discovered multiple competing ParameterResolvers for parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockCompetingParameterInjection.\$spock_feature_0_0(java.lang.Integer)]: ParameterExtension, ParameterExtension2"
+        runTest(SpockCompetingParameterInjection)
+                == ["ParameterExtension \$spock_feature_0_0",
+                    "ParameterExtension2 \$spock_feature_0_0",
+                    "Error: (ParameterResolutionException) Discovered multiple competing ParameterResolvers for parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockCompetingParameterInjection.\$spock_feature_0_0(java.lang.Integer)]: ParameterExtension, ParameterExtension2"
         ]
     }
 
@@ -56,21 +57,23 @@ class SpockParamsTest extends AbstractTest {
     def "Check primitive param resolved to null"() {
 
         expect: 'value resolved as null'
-        runTest(SpockParamInjectionNullPrimitive) == ["Error: (ParameterResolutionException) ParameterResolver [ru.vyarus.spock.jupiter.test.Param] resolved a null value for parameter [int arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockParamInjectionNullPrimitive.\$spock_feature_0_0(int)], but a primitive of type [int] is required."]
+        runTest(SpockParamInjectionNullPrimitive)
+                == ["Error: (ParameterResolutionException) ParameterResolver [ru.vyarus.spock.jupiter.test.Param] resolved a null value for parameter [int arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockParamInjectionNullPrimitive.\$spock_feature_0_0(int)], but a primitive of type [int] is required."]
     }
 
     def "Check wrong parameter type resolved"() {
 
         expect: 'value resolved with bad type'
-        runTest(SpockParamInjectionWrongType) == ["Error: (ParameterResolutionException) ParameterResolver [ru.vyarus.spock.jupiter.test.ParamBadType] resolved a value of type [java.lang.Double] for parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockParamInjectionWrongType.\$spock_feature_0_0(java.lang.Integer)], but a value assignment compatible with [java.lang.Integer] is required."]
+        runTest(SpockParamInjectionWrongType)
+                == ["Error: (ParameterResolutionException) ParameterResolver [ru.vyarus.spock.jupiter.test.ParamBadType] resolved a value of type [java.lang.Double] for parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.SpockParamInjectionWrongType.\$spock_feature_0_0(java.lang.Integer)], but a value assignment compatible with [java.lang.Integer] is required."]
     }
 
     def "Check param context"() {
 
         expect: 'context values ok'
         runTestWithVerification(JupiterParamContextAccess, SpockParamContextAccess,
-                "param.exec sampleTest", "param.exec \$spock_feature_0_0",
-                "param.target JupiterParamContextAccess", "param.target SpockParamContextAccess")
+                "sampleTest", "\$spock_feature_0_0",
+                "JupiterParamContextAccess", "SpockParamContextAccess")
 
                 == ["param.name arg0",
                     "param.exec \$spock_feature_0_0",

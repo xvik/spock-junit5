@@ -15,10 +15,10 @@ class SpockMultiStorageRepeatTest extends AbstractTest {
         expect: 'context values ok'
         runTestWithVerification([JupiterMultiStorageFirst, JupiterMultiStorageSecond] as Class[],
                 [SpockMultiStorageFirst, SpockMultiStorageSecond] as Class[],
-                "JupiterMultiStorageFirst class value 2", "SpockMultiStorageFirst class value 2",
-                "sampleTest() method value 3", "Sample test method value 3",
-                "JupiterMultiStorageSecond class value 1", "SpockMultiStorageSecond class value 1",
-                "sampleTest() method value 2", "Sample test method value 2")
+                "JupiterMultiStorageFirst", "SpockMultiStorageFirst",
+                "sampleTest()", "Sample test",
+                "JupiterMultiStorageSecond", "SpockMultiStorageSecond",
+                "sampleTest()", "Sample test")
 
                 == ["Root value 1",
                     "SpockMultiStorageFirst class value 2",

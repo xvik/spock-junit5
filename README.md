@@ -240,6 +240,7 @@ Not supported:
 
 * TestTemplateInvocationContextProvider - junit specific feature (no need for support)
 * TestInstanceFactory - impossible to support because spock does not delegate test instance creation
+* TestInstancePreConstructCallback - impossible to support because spock does not delegate test instance creation 
 * LifecycleMethodExecutionExceptionHandler - could be supported, but it is very specific
 * InvocationInterceptor - same (very specific)
 * TestWatcher - no need in context of spock

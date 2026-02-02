@@ -27,6 +27,14 @@ public class ActionHolder {
         st.add(state);
     }
 
+    // special case for spock errors (which could appear 2 times if error appears in context of method processing)
+    public static void addIfNotDuplicate(String state) {
+        List<String> st = STATE.get();
+        if (st == null || !st.get(st.size() - 1).equals(state)) {
+            add(state);
+        }
+    }
+
     public static List<String> getState() {
         return STATE.get() == null ? Collections.emptyList() : new ArrayList<>(STATE.get());
     }

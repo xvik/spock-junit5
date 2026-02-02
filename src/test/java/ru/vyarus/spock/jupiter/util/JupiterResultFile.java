@@ -95,10 +95,13 @@ public class JupiterResultFile {
 
         for (int i = 0; i < res.size(); i++) {
             String value = res.get(i);
-            if (map.containsKey(value)) {
-                res.set(i, map.get(value));
-                used.add(value);
+            for (String part : map.keySet()) {
+                if (value.contains(part)) {
+                    value = value.replace(part, map.get(part));
+                    used.add(value);
+                }
             }
+            res.set(i, value);
         }
 
         if (used.size() != map.size()) {

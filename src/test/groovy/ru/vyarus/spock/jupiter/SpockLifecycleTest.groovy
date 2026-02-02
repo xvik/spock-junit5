@@ -58,7 +58,7 @@ class SpockLifecycleTest extends AbstractTest {
 
         expect: 'extensions registered from method and parameter'
         runTestWithVerification(JupiterTestMethodExtensions, SpockTestMethodExtensions,
-                "ParameterExtension sampleTest", "ParameterExtension \$spock_feature_0_0")
+                "sampleTest", "\$spock_feature_0_0")
 
                 == ["BeforeEachCallback",
                     "BeforeEachCallback-2",
@@ -93,7 +93,7 @@ class SpockLifecycleTest extends AbstractTest {
 
         expect: 'extensions registered only from method parameter'
         runTestWithVerification(JupiterSetupMethodExtensions, SpockSetupMethodExtensions,
-                "ParameterExtension setUp", "ParameterExtension setup")
+                "setUp", "setup")
 
                 == ["BeforeAllCallback-2",
                     "BeforeEachCallback-2",
@@ -111,6 +111,7 @@ class SpockLifecycleTest extends AbstractTest {
         expect: 'field extensions recognized'
         runTestWithVerification(JupiterFiledExtensions, SpockFieldExtensions)
                 == ["BeforeAllCallback",
+                    "BeforeAllCallback-2",
                     "BeforeEachCallback",
                     "BeforeEachCallback-2",
                     "BeforeTestExecutionCallback",
@@ -120,6 +121,7 @@ class SpockLifecycleTest extends AbstractTest {
                     "AfterTestExecutionCallback",
                     "AfterEachCallback-2",
                     "AfterEachCallback",
+                    "AfterAllCallback-2",
                     "AfterAllCallback"]
     }
 

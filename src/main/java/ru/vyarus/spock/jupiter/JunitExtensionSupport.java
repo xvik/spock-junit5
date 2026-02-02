@@ -94,11 +94,14 @@ public class JunitExtensionSupport implements IGlobalExtension {
 
         // Register extensions from static fields here, at the class level but
         // after extensions registered via @ExtendWith.
-        ExtensionUtils.registerExtensionsFromFields(registry, testClass, null);
+        ExtensionUtils.registerExtensionsFromStaticFields(registry, testClass);
 
         // register extensions from setupSpec, setup, cleanup, cleanupSpec method parameters
         spec.getAllFixtureMethods().forEach(methodInfo -> ExtensionUtils
                 .registerExtensionsFromExecutableParameters(registry, methodInfo.getReflection()));
+
+        // register extensions from non-static fields (lazy registration so extension could participate in beforeAll)
+        ExtensionUtils.registerExtensionsFromInstanceFields(registry, testClass);
 
         final ClassContext specContext = new ClassContext(engineContext, registry, spec);
 

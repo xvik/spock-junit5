@@ -138,17 +138,11 @@ class SpockErrorsTest extends AbstractTest {
 
     def "Check post processor error"() {
 
-        when:
-        List<String> res = runTest(SpockPostProcessError)
-
-        then: 'test not executed'
-        res == ["BeforeAllCallback",
-                "AfterAllCallback",
-                "Error: (IllegalStateException) problem",
-                // this is correct because spock creates 2 failed events
-                "Error: (IllegalStateException) problem"]
-
-        verify(JupiterPostProcessorError, res.subList(0, res.size() - 1))
+        expect: 'test not executed'
+        runTestWithVerification(JupiterPostProcessorError, SpockPostProcessError)
+                == ["BeforeAllCallback",
+                    "AfterAllCallback",
+                    "Error: (IllegalStateException) problem"]
     }
 
     def "Check pre destroy error"() {
@@ -170,8 +164,8 @@ class SpockErrorsTest extends AbstractTest {
 
         expect: 'all callbacks executed'
         runTestWithVerification(JupiterParameterError, SpockParameterError,
-                "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [void playground.tests.exceptions.JupiterParameterError.sampleTest(java.lang.Integer)]: problem",
-                "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.exception.SpockParameterError.\$spock_feature_0_0(java.lang.Integer)]: problem")
+                "void playground.tests.exceptions.JupiterParameterError.sampleTest(java.lang.Integer)",
+                "public void ru.vyarus.spock.jupiter.test.exception.SpockParameterError.\$spock_feature_0_0(java.lang.Integer)")
 
                 == ["BeforeAllCallback",
                     "BeforeEachCallback",
@@ -188,8 +182,8 @@ class SpockErrorsTest extends AbstractTest {
         expect: 'all callbacks executed'
         runTestWithVerification(JupiterParameterError2, SpockParameterError2,
                 "ParameterExtension sampleTest", "ParameterExtension \$spock_feature_0_0",
-                "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [void playground.tests.exceptions.JupiterParameterError2.sampleTest(java.lang.Integer)]: problem",
-                "Error: (ParameterResolutionException) Failed to resolve parameter [java.lang.Integer arg0] in method [public void ru.vyarus.spock.jupiter.test.exception.SpockParameterError2.\$spock_feature_0_0(java.lang.Integer)]: problem")
+                "void playground.tests.exceptions.JupiterParameterError2.sampleTest(java.lang.Integer)",
+                "public void ru.vyarus.spock.jupiter.test.exception.SpockParameterError2.\$spock_feature_0_0(java.lang.Integer)")
 
                 == ["BeforeAllCallback",
                     "BeforeEachCallback",

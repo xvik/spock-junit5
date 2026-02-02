@@ -1,4 +1,5 @@
 BeforeAllCallback
+BeforeAllCallback-2
 BeforeEachCallback
 BeforeEachCallback-2
 BeforeTestExecutionCallback
@@ -8,4 +9,5 @@ AfterTestExecutionCallback-2
 AfterTestExecutionCallback
 AfterEachCallback-2
 AfterEachCallback
+AfterAllCallback-2
 AfterAllCallback

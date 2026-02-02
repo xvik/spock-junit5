@@ -47,8 +47,18 @@ import java.util.stream.Collectors;
 public class JunitApiExecutor {
     private final Logger logger = LoggerFactory.getLogger(JunitApiExecutor.class);
 
+    // since 5.11 field extensions registered on class level (to early detect ExtendWith annotations)
+    // beforeAll called before test instance is ready, but afterAll is called when all field extensions are available
+    // So we have to store all afterAll extensions before fileds resolution to avoid calling field extensions
+    private List<AfterAllCallback> afterAllExtensions;
+
     // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeBeforeAllCallbacks
     public void beforeAll(final ClassContext context) {
+        // collect extensions here because field extensions are registered now on class level and would
+        // be lazy-initialized after test instance creation - they should not be used in afterAll
+        // Also, it must be done before beforeAll processing because it could fail!
+        afterAllExtensions = getReversedExtensions(context, AfterAllCallback.class);
+
         for (BeforeAllCallback callback : getExtensions(context, BeforeAllCallback.class)) {
             context.getCollector().execute(() -> callback.beforeAll(context));
             if (context.getCollector().isNotEmpty()) {
@@ -58,12 +68,15 @@ public class JunitApiExecutor {
         context.getCollector().assertEmpty();
     }
 
-    // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeTestInstancePostProcessors
+    // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.instantiateAndPostProcessTestInstance
     public void instancePostProcessors(final ClassContext context, final Object instance) {
-        context.getCollector().execute(() ->
+        context.getCollector().execute(() -> {
                 getExtensions(context, TestInstancePostProcessor.class).forEach(
                         extension -> executeAndMaskThrowable(() ->
-                                extension.postProcessTestInstance(instance, context))));
+                                extension.postProcessTestInstance(instance, context)));
+                // init non-static field extensions
+                context.getRegistry().initializeExtensions(context.getRequiredTestClass(), instance);
+        });
         context.getCollector().assertEmpty();
 
     }
@@ -119,7 +132,7 @@ public class JunitApiExecutor {
     // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeAfterAllCallbacks
     public void afterAll(final ClassContext context) {
         final ThrowableCollector collector = context.getCollector();
-        getReversedExtensions(context, AfterAllCallback.class).forEach(
+        afterAllExtensions.forEach(
                 extension -> collector.execute(() -> extension.afterAll(context)));
         collector.assertEmpty();
     }

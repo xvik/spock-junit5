@@ -39,13 +39,17 @@ abstract class AbstractTest extends Specification {
                     .allEvents().failed().stream()
                     // exceptions appended to events log
                     .forEach(event -> {
+                        // in case of method error there would be 2 errors: method error + overall test error
                         Throwable err = event.getPayload(TestExecutionResult.class).get().getThrowable().get()
                         err.printStackTrace()
-                        ActionHolder.add("Error: (" + err.getClass().getSimpleName() + ") " + err.getMessage())
+                        ActionHolder.addIfNotDuplicate("Error: (" + err.getClass().getSimpleName() + ") " + err.getMessage())
                     })
 //                    .containerEvents()
 //                    .assertStatistics(stats -> stats.failed(0).aborted(0));
-            return ActionHolder.getState()
+            List<String> res = ActionHolder.getState()
+            // this initializer appears when tests is run from the IDEA only
+            res.removeIf { it.startsWith('spock.INITIALIZER (initializer method)')}
+            return res;
         } finally {
             ACTIVE = false
             ActionHolder.cleanup()

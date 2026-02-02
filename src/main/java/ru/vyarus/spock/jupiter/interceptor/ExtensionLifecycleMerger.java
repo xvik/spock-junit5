@@ -52,7 +52,6 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     private final JunitApiExecutor junit = new JunitApiExecutor();
     private final IMethodInterceptor fixtureMethodsInterceptor;
 
-
     public ExtensionLifecycleMerger(final ClassContext context) {
         this.context = context;
 
@@ -187,8 +186,6 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         final Method method = featureInfo.getFeatureMethod().getReflection();
         final ExtensionRegistry methodRegistry = ExtensionUtils.createMethodRegistry(context.getRegistry(), method);
         ExtensionUtils.registerExtensionsFromExecutableParameters(methodRegistry, method);
-        // register non-static @RegisterExtension annotated extensions
-        ExtensionUtils.registerExtensionsFromFields(methodRegistry, context.getRequiredTestClass(), instance);
         return new MethodContext(context, methodRegistry, featureInfo, instance);
     }
 

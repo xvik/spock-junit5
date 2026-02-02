@@ -1,0 +1,3 @@
+BeforeAllCallback
+AfterAllCallback
+Error: (PreconditionViolationException) Failed to register extension via field [ru.vyarus.spock.jupiter.support.LifecycleExtension playground.tests.exceptions.JupiterInvalidManualRegistration.ext]. The field registers an extension of type [ru.vyarus.spock.jupiter.support.LifecycleExtension] via @RegisterExtension and @ExtendWith, but only one registration of a given extension type is permitted.

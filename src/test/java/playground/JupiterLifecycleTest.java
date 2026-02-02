@@ -108,6 +108,7 @@ public class JupiterLifecycleTest extends AbstractJupiterTest {
         Assertions.assertEquals(runTest(JupiterFiledExtensions.class),
                 Arrays.asList(
                         "BeforeAllCallback",
+                        "BeforeAllCallback-2",
                         "BeforeEachCallback",
                         "BeforeEachCallback-2",
                         "BeforeTestExecutionCallback",
@@ -117,6 +118,7 @@ public class JupiterLifecycleTest extends AbstractJupiterTest {
                         "AfterTestExecutionCallback",
                         "AfterEachCallback-2",
                         "AfterEachCallback",
+                        "AfterAllCallback-2",
                         "AfterAllCallback"));
     }
 }

@@ -1,0 +1,1 @@
+Error: (PreconditionViolationException) Failed to register extension via @RegisterExtension field [java.lang.Integer playground.tests.exceptions.JupiterInvalidManualRegistration2.ext]: field value's type [java.lang.Integer] must implement an [org.junit.jupiter.api.extension.Extension] API.
