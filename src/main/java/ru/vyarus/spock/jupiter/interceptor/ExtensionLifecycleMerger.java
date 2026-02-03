@@ -62,7 +62,12 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                 ctx = getMethodContext(invocation);
             }
             injectArguments(invocation, ctx);
-            invocation.proceed();
+            // intercepting here because the main interceptor does not receive exceptions (they are already eaten)
+            try {
+                invocation.proceed();
+            } catch (Throwable ex) {
+                handleFixtureMethodException(invocation, ctx, ex);
+            }
         };
     }
 
@@ -212,6 +217,27 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                 // (assuming native spock extension would process this parameter)
                 arguments[i] = ExtensionUtils.resolveParameter(parameterContext, method, context);
             }
+        }
+    }
+
+    private void handleFixtureMethodException(final IMethodInvocation invocation,
+                                              final AbstractContext context,
+                                              final Throwable throwable) {
+        switch (invocation.getMethod().getKind()) {
+            case SETUP_SPEC:
+                junit.handleSetupSpecMethodException(context, throwable);
+                break;
+            case SETUP:
+                junit.handleSetupMethodException(context, throwable);
+                break;
+            case CLEANUP:
+                junit.handleCleanupMethodException(context, throwable);
+                break;
+            case CLEANUP_SPEC:
+                junit.handleCleanupSpecMethodException(context, throwable);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected method kind: " + invocation.getMethod().getKind());
         }
     }
 }

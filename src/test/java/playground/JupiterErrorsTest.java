@@ -17,6 +17,7 @@ import playground.tests.exceptions.JupiterPreDestroyError;
 import playground.tests.exceptions.JupiterTestError;
 import playground.tests.exceptions.JupiterTestExceptionHandler;
 import playground.tests.exceptions.JupiterTestExceptionHandler2;
+import playground.tests.exceptions.JupiterTestExceptionHandler3;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -207,7 +208,7 @@ public class JupiterErrorsTest extends AbstractJupiterTest {
                         "BeforeEachCallback",
                         "BeforeTestExecutionCallback",
                         "RethrowExceptionHandler problem",
-                        "SwallowExceptionHandler problem",
+                        "EatExceptionHandler problem",
                         "AfterTestExecutionCallback",
                         "AfterEachCallback",
                         "AfterAllCallback"
@@ -221,10 +222,24 @@ public class JupiterErrorsTest extends AbstractJupiterTest {
                         "BeforeEachCallback",
                         "BeforeTestExecutionCallback",
                         "RethrowExceptionHandler assert fail",
-                        "SwallowExceptionHandler assert fail",
+                        "EatExceptionHandler assert fail",
                         "AfterTestExecutionCallback",
                         "AfterEachCallback",
                         "AfterAllCallback"
+                ));
+    }
+
+    @Test
+    void testExceptionHandlerRethrows() {
+        Assertions.assertEquals(runTest(JupiterTestExceptionHandler3.class),
+                Arrays.asList("BeforeAllCallback",
+                        "BeforeEachCallback",
+                        "BeforeTestExecutionCallback",
+                        "RethrowExceptionHandler assert fail",
+                        "AfterTestExecutionCallback",
+                        "AfterEachCallback",
+                        "AfterAllCallback",
+                        "Error: (AssertionFailedError) assert fail"
                 ));
     }
 

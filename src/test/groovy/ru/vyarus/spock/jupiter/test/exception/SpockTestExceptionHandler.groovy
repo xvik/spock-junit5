@@ -4,7 +4,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import ru.vyarus.spock.jupiter.AbstractTest
 import ru.vyarus.spock.jupiter.support.LifecycleExtension
 import ru.vyarus.spock.jupiter.support.RethrowExceptionHandler
-import ru.vyarus.spock.jupiter.support.SwallowExceptionHandler
+import ru.vyarus.spock.jupiter.support.EatExceptionHandler
 import spock.lang.Requires
 import spock.lang.Specification
 
@@ -14,7 +14,7 @@ import spock.lang.Specification
  */
 @Requires({ AbstractTest.ACTIVE })
 // exception handlers processing order is reversed
-@ExtendWith([LifecycleExtension, SwallowExceptionHandler, RethrowExceptionHandler])
+@ExtendWith([LifecycleExtension, EatExceptionHandler, RethrowExceptionHandler])
 class SpockTestExceptionHandler extends Specification {
 
     def "Sample test"() {

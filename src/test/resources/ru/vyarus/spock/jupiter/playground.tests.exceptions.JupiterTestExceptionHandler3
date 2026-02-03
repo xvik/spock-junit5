@@ -2,7 +2,7 @@ BeforeAllCallback
 BeforeEachCallback
 BeforeTestExecutionCallback
 RethrowExceptionHandler assert fail
-EatExceptionHandler assert fail
 AfterTestExecutionCallback
 AfterEachCallback
 AfterAllCallback
+Error: (AssertionFailedError) assert fail

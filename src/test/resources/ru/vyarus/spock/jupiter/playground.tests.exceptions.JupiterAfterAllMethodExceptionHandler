@@ -1,8 +1,9 @@
 BeforeAllCallback
 BeforeEachCallback
 BeforeTestExecutionCallback
-RethrowExceptionHandler assert fail
-EatExceptionHandler assert fail
+test.body
 AfterTestExecutionCallback
 AfterEachCallback
+AfterAllExceptionHandler problem
+AfterAllEatExceptionHandler problem
 AfterAllCallback

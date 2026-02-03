@@ -7,10 +7,10 @@ import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
  * @author Vyacheslav Rusakov
  * @since 02.01.2022
  */
-public class SwallowExceptionHandler implements TestExecutionExceptionHandler {
+public class EatExceptionHandler implements TestExecutionExceptionHandler {
 
     @Override
     public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
-        ActionHolder.add("SwallowExceptionHandler " + throwable.getMessage());
+        ActionHolder.add("EatExceptionHandler " + throwable.getMessage());
     }
 }

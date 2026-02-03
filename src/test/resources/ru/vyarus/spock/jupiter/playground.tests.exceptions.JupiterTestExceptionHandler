@@ -2,7 +2,7 @@ BeforeAllCallback
 BeforeEachCallback
 BeforeTestExecutionCallback
 RethrowExceptionHandler problem
-SwallowExceptionHandler problem
+EatExceptionHandler problem
 AfterTestExecutionCallback
 AfterEachCallback
 AfterAllCallback

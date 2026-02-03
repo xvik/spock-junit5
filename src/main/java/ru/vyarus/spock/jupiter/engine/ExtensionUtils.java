@@ -81,7 +81,8 @@ public final class ExtensionUtils {
             ParameterResolver.class,
             TestInstancePostProcessor.class,
             TestInstancePreDestroyCallback.class,
-            TestExecutionExceptionHandler.class
+            TestExecutionExceptionHandler.class,
+            LifecycleMethodExecutionExceptionHandler.class
     );
 
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
@@ -91,8 +92,6 @@ public final class ExtensionUtils {
             // impossible to add (spock does not allow this)
             TestInstanceFactory.class,
             TestInstancePreConstructCallback.class,
-            // could be supported, but what for?
-            LifecycleMethodExecutionExceptionHandler.class,
             InvocationInterceptor.class,
             // support could be added, but this is too specific (will never be required)
             TestWatcher.class

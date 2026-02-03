@@ -13,6 +13,7 @@ import playground.tests.exceptions.JupiterPreDestroyError
 import playground.tests.exceptions.JupiterTestError
 import playground.tests.exceptions.JupiterTestExceptionHandler
 import playground.tests.exceptions.JupiterTestExceptionHandler2
+import playground.tests.exceptions.JupiterTestExceptionHandler3
 import ru.vyarus.spock.jupiter.test.exception.*
 
 /**
@@ -211,7 +212,7 @@ class SpockErrorsTest extends AbstractTest {
                     "BeforeEachCallback",
                     "BeforeTestExecutionCallback",
                     "RethrowExceptionHandler problem",
-                    "SwallowExceptionHandler problem",
+                    "EatExceptionHandler problem",
                     "AfterTestExecutionCallback",
                     "AfterEachCallback",
                     "AfterAllCallback"]
@@ -220,15 +221,33 @@ class SpockErrorsTest extends AbstractTest {
     def "Check exception handler on assertion"() {
 
         expect: 'assertion swallowed'
-        runTest(JupiterTestExceptionHandler2, SpockTestExceptionHandler2)
+        runTestWithVerification(JupiterTestExceptionHandler2, SpockTestExceptionHandler2,
+                "assert fail", "Condition not satisfied:\n\nfalse\n")
+                
                 == ["BeforeAllCallback",
                     "BeforeEachCallback",
                     "BeforeTestExecutionCallback",
                     "RethrowExceptionHandler Condition not satisfied:\n\nfalse\n",
-                    "SwallowExceptionHandler Condition not satisfied:\n\nfalse\n",
+                    "EatExceptionHandler Condition not satisfied:\n\nfalse\n",
                     "AfterTestExecutionCallback",
                     "AfterEachCallback",
                     "AfterAllCallback"]
+    }
+
+    def "Check exception handler rethrows"() {
+
+        expect: 'assertion swallowed'
+        runTestWithVerification(JupiterTestExceptionHandler3, SpockTestExceptionHandler3,
+                "assert fail", "Condition not satisfied:\n\nfalse\n",
+                "AssertionFailedError", "ConditionNotSatisfiedError")
+                == ["BeforeAllCallback",
+                    "BeforeEachCallback",
+                    "BeforeTestExecutionCallback",
+                    "RethrowExceptionHandler Condition not satisfied:\n\nfalse\n",
+                    "AfterTestExecutionCallback",
+                    "AfterEachCallback",
+                    "AfterAllCallback",
+                    "Error: (ConditionNotSatisfiedError) Condition not satisfied:\n\nfalse\n"]
     }
 
     def "Check executable invoker error"() {
@@ -240,7 +259,7 @@ class SpockErrorsTest extends AbstractTest {
     def "Check no supported extension found"() {
 
         expect: 'error'
-        runTest(SpockNotSupportedExtensions) == ["Error: (IllegalStateException) Extension ru.vyarus.spock.jupiter.test.exception.SpockNotSupportedExtensions\$NotSupportedExtension does not use any of supported extension types: ExecutionCondition, BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback, BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver, TestInstancePostProcessor, TestInstancePreDestroyCallback, TestExecutionExceptionHandler"]
+        runTest(SpockNotSupportedExtensions) == ["Error: (IllegalStateException) Extension ru.vyarus.spock.jupiter.test.exception.SpockNotSupportedExtensions\$NotSupportedExtension does not use any of supported extension types: ExecutionCondition, BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback, BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver, TestInstancePostProcessor, TestInstancePreDestroyCallback, TestExecutionExceptionHandler, LifecycleMethodExecutionExceptionHandler"]
     }
 
     def "Check extension with both supported and not supported extensions"() {

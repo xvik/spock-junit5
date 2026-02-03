@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.LifecycleMethodExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.jupiter.api.extension.TestInstancePreDestroyCallback;
@@ -16,6 +17,7 @@ import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.commons.util.ExceptionUtils;
 import org.junit.platform.commons.util.UnrecoverableExceptions;
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
+import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
 import ru.vyarus.spock.jupiter.engine.context.MethodContext;
@@ -71,11 +73,11 @@ public class JunitApiExecutor {
     // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.instantiateAndPostProcessTestInstance
     public void instancePostProcessors(final ClassContext context, final Object instance) {
         context.getCollector().execute(() -> {
-                getExtensions(context, TestInstancePostProcessor.class).forEach(
-                        extension -> executeAndMaskThrowable(() ->
-                                extension.postProcessTestInstance(instance, context)));
-                // init non-static field extensions
-                context.getRegistry().initializeExtensions(context.getRequiredTestClass(), instance);
+            getExtensions(context, TestInstancePostProcessor.class).forEach(
+                    extension -> executeAndMaskThrowable(() ->
+                            extension.postProcessTestInstance(instance, context)));
+            // init non-static field extensions
+            context.getRegistry().initializeExtensions(context.getRequiredTestClass(), instance);
         });
         context.getCollector().assertEmpty();
 
@@ -131,15 +133,43 @@ public class JunitApiExecutor {
 
     // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeAfterAllCallbacks
     public void afterAll(final ClassContext context) {
-        final ThrowableCollector collector = context.getCollector();
-        afterAllExtensions.forEach(
-                extension -> collector.execute(() -> extension.afterAll(context)));
-        collector.assertEmpty();
+        // null should be not possible, but just in case
+        if (afterAllExtensions != null) {
+            final ThrowableCollector collector = context.getCollector();
+            afterAllExtensions.forEach(
+                    extension -> collector.execute(() -> extension.afterAll(context)));
+            collector.assertEmpty();
+        }
     }
 
-    // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestExecutionExceptionHandlers
-    public void handleTestException(final MethodContext context, final Throwable error) {
-        processTestException(context, getReversedExtensions(context, TestExecutionExceptionHandler.class), error);
+    public void handleTestException(final MethodContext context, final Throwable throwable) {
+        invokeExecutionExceptionHandlers(TestExecutionExceptionHandler.class, context.getRegistry(), throwable,
+                (handler, handledThrowable) -> handler
+                        .handleTestExecutionException(context, handledThrowable));
+    }
+
+    public void handleSetupSpecMethodException(final AbstractContext context, final Throwable throwable) {
+        invokeExecutionExceptionHandlers(LifecycleMethodExecutionExceptionHandler.class, context.getRegistry(),
+                throwable, (handler, handledThrowable) -> handler
+                        .handleBeforeAllMethodExecutionException(context, handledThrowable));
+    }
+
+    public void handleSetupMethodException(final AbstractContext context, final Throwable throwable) {
+        invokeExecutionExceptionHandlers(LifecycleMethodExecutionExceptionHandler.class, context.getRegistry(),
+                throwable, (handler, handledThrowable) -> handler
+                        .handleBeforeEachMethodExecutionException(context, handledThrowable));
+    }
+
+    public void handleCleanupMethodException(final AbstractContext context, final Throwable throwable) {
+        invokeExecutionExceptionHandlers(LifecycleMethodExecutionExceptionHandler.class, context.getRegistry(),
+                throwable, (handler, handledThrowable) -> handler
+                        .handleAfterEachMethodExecutionException(context, handledThrowable));
+    }
+
+    public void handleCleanupSpecMethodException(final AbstractContext context, final Throwable throwable) {
+        invokeExecutionExceptionHandlers(LifecycleMethodExecutionExceptionHandler.class, context.getRegistry(),
+                throwable, (handler, handledThrowable) -> handler
+                        .handleAfterAllMethodExecutionException(context, handledThrowable));
     }
 
     private <T extends Extension> List<T> getReversedExtensions(final AbstractContext context, final Class<T> type) {
@@ -165,6 +195,41 @@ public class JunitApiExecutor {
         return exts;
     }
 
+    /**
+     * Invoke exception handlers for the supplied {@code Throwable} one-by-one
+     * until none are left or the throwable to handle has been swallowed.
+     */
+    // org.junit.jupiter.engine.descriptor.JupiterTestDescriptor.invokeExecutionExceptionHandlers
+    private <E extends Extension> void invokeExecutionExceptionHandlers(
+            final Class<E> handlerType,
+            final ExtensionRegistry registry,
+            final Throwable throwable,
+            final ExceptionHandlerInvoker<E> handlerInvoker) {
+
+        final List<E> extensions = registry.getReversedExtensions(handlerType);
+        invokeExecutionExceptionHandlers(extensions, throwable, handlerInvoker);
+    }
+
+    // org.junit.jupiter.engine.descriptor.JupiterTestDescriptor.invokeExecutionExceptionHandlers
+    private <E extends Extension> void invokeExecutionExceptionHandlers(
+            final List<E> exceptionHandlers,
+            final Throwable throwable,
+            final ExceptionHandlerInvoker<E> handlerInvoker) {
+
+        // No handlers left?
+        if (exceptionHandlers.isEmpty()) {
+            throw ExceptionUtils.throwAsUncheckedException(throwable);
+        }
+
+        try {
+            // Invoke next available handler
+            handlerInvoker.invoke(exceptionHandlers.remove(0), throwable);
+        } catch (Throwable handledThrowable) {
+            UnrecoverableExceptions.rethrowIfUnrecoverable(handledThrowable);
+            invokeExecutionExceptionHandlers(exceptionHandlers, handledThrowable, handlerInvoker);
+        }
+    }
+
     private void executeAndMaskThrowable(final Executable executable) {
         try {
             executable.execute();
@@ -173,21 +238,13 @@ public class JunitApiExecutor {
         }
     }
 
-    // org.junit.jupiter.engine.descriptor.JupiterTestDescriptor.invokeExecutionExceptionHandlers
-    private void processTestException(final MethodContext context,
-                                      final List<TestExecutionExceptionHandler> handlers,
-                                      final Throwable error) {
-        // No handlers left?
-        if (handlers.isEmpty()) {
-            ExceptionUtils.throwAsUncheckedException(error);
-        }
+    @FunctionalInterface
+    interface ExceptionHandlerInvoker<E extends Extension> {
 
-        try {
-            // Invoke next available handler
-            handlers.remove(0).handleTestExecutionException(context, error);
-        } catch (Throwable handledThrowable) {
-            UnrecoverableExceptions.rethrowIfUnrecoverable(handledThrowable);
-            processTestException(context, handlers, handledThrowable);
-        }
+        /**
+         * Invoke the supplied {@code exceptionHandler} with the supplied {@code throwable}.
+         */
+        void invoke(E exceptionHandler, Throwable throwable) throws Throwable;
+
     }
 }
