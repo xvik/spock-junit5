@@ -1,8 +1,8 @@
 ### 1.3.0 (2025-02-03)
-* Junit [junit 5.11](https://docs.junit.org/5.11.0/release-notes/#release-notes-5.11.0-junit-jupiter-deprecations-and-breaking-changes) compatibility: 
+* [Junit 5.11](https://docs.junit.org/5.11.0/release-notes/#release-notes-5.11.0-junit-jupiter-deprecations-and-breaking-changes) compatibility: 
     - @ExtendWith on a non-static field now participate in beforeAll/afterAll;
     - static extension fields are registered before non-static fields (junit behavior change fixing extensions order)
-* Add support for LifecycleMethodExecutionExceptionHandler (for spock's setupSpec, setup etc.)
+* Add support for LifecycleMethodExecutionExceptionHandler (for spock setupSpec, setup etc.)
 
 ### 1.2.0 (2022-11-25)
 * Add root (engine-level) context to be able to use global storage in extensions (#44) 
