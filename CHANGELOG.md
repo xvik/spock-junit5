@@ -1,7 +1,7 @@
-* Update junit compatibility
-    - [junit 5.11](https://docs.junit.org/5.11.0/release-notes/#release-notes-5.11.0-junit-jupiter-deprecations-and-breaking-changes): 
-      * @ExtendWith on a non-static field now participate in beforeAll/afterAll;
-      * static extension fields are registered before non-static fields (junit behavior change)
+### 1.3.0 (2025-02-03)
+* Junit [junit 5.11](https://docs.junit.org/5.11.0/release-notes/#release-notes-5.11.0-junit-jupiter-deprecations-and-breaking-changes) compatibility: 
+    - @ExtendWith on a non-static field now participate in beforeAll/afterAll;
+    - static extension fields are registered before non-static fields (junit behavior change fixing extensions order)
 * Add support for LifecycleMethodExecutionExceptionHandler (for spock's setupSpec, setup etc.)
 
 ### 1.2.0 (2022-11-25)

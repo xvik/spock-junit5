@@ -55,28 +55,31 @@ Maven:
 <dependency>
     <groupId>ru.vyarus</groupId>
     <artifactId>spock-junit5</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ru.vyarus:spock-junit5:1.2.0'
+implementation 'ru.vyarus:spock-junit5:1.3.0'
 ```
 
 ### Compatibility
 
-Compiled for java 8 (compatible up to java 17), junit 5.9.1
+Compiled for java 8 (compatible up to java 17), junit 5.11
 
-The only transitive library dependency is *junit-jupiter-api*: first of all, to bring in required junit annotations
-and to prevent usage with lower junit versions
+The only transitive library dependency is *junit-jupiter-api*: to bring in required junit annotations
+and to prevent usage with lower junit versions (you should see dependencies mess in case of incorrect version usage).
 
-Spock | Junit | Version
---------|-------|-----
-2.2     | 5.9.1 | 1.2.0
-2.1     | 5.8.2 | 1.0.1
-2.0     | 5.7.2 | 1.0.1
+| Junit      | Version  
+|------------|--------- 
+| 5.9 - 5.11 | 1.3.0   
+| 5.7 - 5.8  | 1.0.1    
+
+**IMPORTANT**: I know that junit 5.12 and up have some API changes. New compatible versions will be released shortly
+(versions released for each junit version with breaking changes to cover all usages).
+Also, there is a [known problem with spring-boot4](https://github.com/spockframework/spock/issues/2295#issuecomment-3828894546)
 
 ##### Snapshots
 
@@ -235,17 +238,37 @@ Supported:
 * TestInstancePostProcessor
 * TestInstancePreDestroyCallback
 * TestExecutionExceptionHandler
+* LifecycleMethodExecutionExceptionHandler
 
 Not supported:
 
 * TestTemplateInvocationContextProvider - junit specific feature (no need for support)
 * TestInstanceFactory - impossible to support because spock does not delegate test instance creation
 * TestInstancePreConstructCallback - impossible to support because spock does not delegate test instance creation 
-* LifecycleMethodExecutionExceptionHandler - could be supported, but it is very specific
-* InvocationInterceptor - same (very specific)
+* InvocationInterceptor - could be supported, but it is very specific
 * TestWatcher - no need in context of spock
 
 Of course, constructor parameters injection is not supported because spock does not allow spec constructors.
+
+##### Default extensions
+
+Junit register some extensions by default:
+
+```java
+	private static final List<Extension> DEFAULT_STATELESS_EXTENSIONS = Collections.unmodifiableList(Arrays.asList(//
+		new DisabledCondition(),
+		new AutoCloseExtension(), 
+		new TimeoutExtension(), 
+		new RepeatedTestExtension(), 
+		new TestInfoParameterResolver(), 
+		new TestReporterParameterResolver()));
+```
+
+Plus, junit loads extensions from `META-INF/services/org.junit.jupiter.api.extension.Extension` file.
+
+**None of this would work in context of spock**.   
+This is intentional: as not all extensions are supported, then automatic loading may 
+cause unexpected behavior. If you need any default extension - register it manually.
 
 ### Usage with Spring-Boot
 
@@ -253,7 +276,7 @@ Only spock and spock-junit5 dependencies would be required:
 
 ```groovy
 testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
-testImplementation 'ru.vyarus:spock-junit5:1.2.0'
+testImplementation 'ru.vyarus:spock-junit5:1.3.0'
 ```
 
 Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module) 
