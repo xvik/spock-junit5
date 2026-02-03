@@ -250,7 +250,13 @@ Not supported:
 
 Of course, constructor parameters injection is not supported because spock does not allow spec constructors.
 
-##### Default extensions
+**What does "extension not supported" mean?**  
+If extension implements not supported extension interface, like `TestWatcher`,
+then methods for this interface would not be called on extension. That's all.  
+Such interfaces might be used in extension for some "additional features" like logging and
+so extension would work perfectly in spock.
+
+##### Default junit extensions
 
 Junit register some extensions by default:
 
@@ -269,6 +275,11 @@ Plus, junit loads extensions from `META-INF/services/org.junit.jupiter.api.exten
 **None of this would work in context of spock**.   
 This is intentional: as not all extensions are supported, then automatic loading may 
 cause unexpected behavior. If you need any default extension - register it manually.
+
+Annotation-based extensions like `@Disabled` or `@AutoClose` would work in spock because they are declared with annotations. 
+Extensions like `TestInfoParameterResolver` could be easully enabled with `@ExtendWith(TestInfoParameterResolver.class)`
+
+So overall not automatic defaults should not be a problem.
 
 ### Usage with Spring-Boot
 
