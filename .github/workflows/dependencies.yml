@@ -1,0 +1,19 @@
+name: Dependencies
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v5
