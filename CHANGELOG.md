@@ -1,4 +1,4 @@
-### 1.4.0 (2025-02-04)
+### 1.4.0 (2026-02-04)
 * [Junit 5.12](https://docs.junit.org/5.12.1/release-notes/) compatibility
     - Implement missed extension context API methods
     - The new PreInterruptCallback callback is not supported (triggered by a not supported @Timeout extension)
@@ -11,7 +11,7 @@
 
 Note: there is no need for separate releases because only new methods were added
 
-### 1.3.0 (2025-02-03)
+### 1.3.0 (2026-02-03)
 * [Junit 5.11](https://docs.junit.org/5.11.0/release-notes/#release-notes-5.11.0-junit-jupiter-deprecations-and-breaking-changes) compatibility: 
     - @ExtendWith on a non-static field now participate in beforeAll/afterAll;
     - static extension fields are registered before non-static fields (junit behavior change fixing extensions order)
