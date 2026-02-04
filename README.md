@@ -55,29 +55,35 @@ Maven:
 <dependency>
     <groupId>ru.vyarus</groupId>
     <artifactId>spock-junit5</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ru.vyarus:spock-junit5:1.3.0'
+implementation 'ru.vyarus:spock-junit5:1.4.0'
 ```
 
 ### Compatibility
 
-Compiled for java 8 (compatible up to java 17), junit 5.11
+Compiled for java 8 (compatible up to java 17), junit 5.12
 
 The only transitive library dependency is *junit-jupiter-api*: to bring in required junit annotations
-and to prevent usage with lower junit versions (you should see dependencies mess in case of incorrect version usage).
+and to prevent usage with lower junit versions.
 
-| Junit      | Version  
-|------------|--------- 
-| 5.9 - 5.11 | 1.3.0   
-| 5.7 - 5.8  | 1.0.1    
+There is a high chance that a more recent module version will work with older junit versions
+(it depends on what extensions are used).
+In case of problems (like `NoClassDefFoundError`) select a lower module version (according to your junit version) 
 
-**IMPORTANT**: I know that junit 5.12 and up have some API changes. New compatible versions will be released shortly
+| Junit      | Version | Junit API Changes 
+|------------|---------|-------------------
+| 5.12       | 1.4.0   | added PreInterruptCallback, ExtensionContext API changed  
+| 5.11       | 1.3.0   | changed initialization order for non-static extension fields
+| 5.9 - 5.10 | 1.2.0   | 
+| 5.7 - 5.8  | 1.0.1   | 
+
+**IMPORTANT**: I know that junit 5.13 and up have some API changes. New compatible versions will be released shortly
 (versions released for each junit version with breaking changes to cover all usages).
 Also, there is a [known problem with spring-boot4](https://github.com/spockframework/spock/issues/2295#issuecomment-3828894546)
 
@@ -246,6 +252,7 @@ Not supported:
 * TestInstanceFactory - impossible to support because spock does not delegate test instance creation
 * TestInstancePreConstructCallback - impossible to support because spock does not delegate test instance creation 
 * InvocationInterceptor - could be supported, but it is very specific
+* PreInterruptCallback - triggered by @Timeout extensions which is not supported (requires InvocationInterceptor)
 * TestWatcher - no need in context of spock
 
 Of course, constructor parameters injection is not supported because spock does not allow spec constructors.
@@ -287,13 +294,12 @@ Only spock and spock-junit5 dependencies would be required:
 
 ```groovy
 testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
-testImplementation 'ru.vyarus:spock-junit5:1.3.0'
+testImplementation 'ru.vyarus:spock-junit5:1.4.0'
 ```
 
 Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module) 
-**is not required** for spring-boot tests!
-
-Now use spring junit extensions **the same way** as in raw junit
+**should not be used** together with spock-junit5 for spring-boot tests!  
+Spock-junit5 would activate native spring junit5 extensions **the same way** as in raw junit
 
 Example MVC test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-boot-hello-world/src/test/java/com/mkyong/HelloControllerTests.java)):
 

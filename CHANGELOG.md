@@ -1,3 +1,4 @@
+### 1.4.0 (2025-02-04)
 * [Junit 5.12](https://docs.junit.org/5.12.1/release-notes/) compatibility
     - Implement missed extension context API methods
     - The new PreInterruptCallback extension isn’t supported because it is triggered by @Timeout extension, which is not supported
