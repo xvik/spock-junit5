@@ -3,6 +3,8 @@ package ru.vyarus.spock.jupiter.engine.context;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExecutableInvoker;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.MediaType;
+import org.junit.jupiter.api.function.ThrowingConsumer;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCollector;
@@ -13,7 +15,9 @@ import ru.vyarus.spock.jupiter.engine.store.ExtensionValuesStore;
 import ru.vyarus.spock.jupiter.engine.store.NamespaceAwareStore;
 
 import java.lang.reflect.AnnotatedElement;
+import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -85,6 +89,12 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     }
 
     @Override
+    public List<Class<?>> getEnclosingTestClasses() {
+        // in spock there might be only one class
+        return Collections.singletonList(getTestClass().get());
+    }
+
+    @Override
     public Optional<TestInstance.Lifecycle> getTestInstanceLifecycle() {
         // test instance per class not supported by spock
         return Optional.of(TestInstance.Lifecycle.PER_METHOD);
@@ -110,6 +120,18 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     @Override
     @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
     public void publishReportEntry(final Map<String, String> map) {
+        // execution listener not implemented
+    }
+
+    @Override
+    @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
+    public void publishDirectory(final String name, final ThrowingConsumer<Path> action) {
+        // execution listener not implemented
+    }
+
+    @Override
+    @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
+    public void publishFile(String name, MediaType mediaType, ThrowingConsumer<Path> action) {
         // execution listener not implemented
     }
 

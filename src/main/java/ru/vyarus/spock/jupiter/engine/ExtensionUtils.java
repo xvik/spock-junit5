@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.LifecycleMethodExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.PreInterruptCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.TestInstanceFactory;
@@ -93,6 +94,7 @@ public final class ExtensionUtils {
             TestInstanceFactory.class,
             TestInstancePreConstructCallback.class,
             InvocationInterceptor.class,
+            PreInterruptCallback.class,
             // support could be added, but this is too specific (will never be required)
             TestWatcher.class
     );
