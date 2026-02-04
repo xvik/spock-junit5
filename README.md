@@ -67,7 +67,7 @@ implementation 'ru.vyarus:spock-junit5:1.4.0'
 
 ### Compatibility
 
-Compiled for java 8 (compatible up to java 17), junit 5.13
+Compiled for java 8 (compatible up to java 17), junit 5.14
 
 The only transitive library dependency is *junit-jupiter-api*: to bring in required junit annotations
 and to prevent usage with lower junit versions.
@@ -78,14 +78,13 @@ In case of problems (like `NoClassDefFoundError`) select a lower module version 
 
 | Junit       | Version | Junit API Changes 
 |-------------|---------|-------------------
-| 5.12 - 5.13 | 1.4.0   | added PreInterruptCallback (5.12), new methods in ExtensionContext  
+| 5.12 - 5.14 | 1.4.0   | new methods in ExtensionContext  
 | 5.11        | 1.3.0   | changed initialization order for non-static extension fields
 | 5.9 - 5.10  | 1.2.0   | 
 | 5.7 - 5.8   | 1.0.1   | 
 
-**IMPORTANT**: I know that junit 5.14 and up have some API changes. New compatible versions will be released shortly
-(versions released for each junit version with breaking changes to cover all usages).
-Also, there is a [known problem with spring-boot4](https://github.com/spockframework/spock/issues/2295#issuecomment-3828894546)
+**IMPORTANT**: I know that junit 6 has some API changes. A new compatible version will be released shortly
+(related [spring-boot4 problem](https://github.com/spockframework/spock/issues/2295#issuecomment-3828894546))
 
 ##### Snapshots
 
