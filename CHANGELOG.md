@@ -8,6 +8,7 @@
       and ClassTemplateInvocationContextProvider not supported (no templates in spock)
 * [Junit 5.14](https://docs.junit.org/5.14.2/release-notes.html) compatibility
     - Implement missed extension context API methods
+* Add AutoCloseable values support for storage (CloseableResource is deprecated)
 
 Note: there is no need for separate releases because only new methods were added
 

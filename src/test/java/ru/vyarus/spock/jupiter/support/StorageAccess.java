@@ -31,9 +31,9 @@ public class StorageAccess implements
         getClassStore(context).put(CLASS, 12);
         // test auto closing
         getRootStore(context).put("root_test", new CloseableValue("root"));
-        getRootStore(context).put("aroot_test", new CloseableValue("aroot"));
+        getRootStore(context).put("aroot_test", new AutoCloseableValue("aroot"));
         getClassStore(context).put("test", new CloseableValue("class"));
-        getClassStore(context).put("atest", new CloseableValue("aclass"));
+        getClassStore(context).put("atest", new AutoCloseableValue("aclass"));
     }
 
     @Override
@@ -48,7 +48,7 @@ public class StorageAccess implements
         getLocalStore(context).put(METHOD, 11);
         // test auto closing
         getLocalStore(context).put("test", new CloseableValue("method"));
-        getLocalStore(context).put("atest", new CloseableValue("amethod"));
+        getLocalStore(context).put("atest", new AutoCloseableValue("amethod"));
     }
 
     @Override

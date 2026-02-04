@@ -50,10 +50,19 @@ public class ExtensionValuesStore {
     public void closeAllStoredCloseableValues() {
         final ThrowableCollector throwableCollector = new OpenTest4JAwareThrowableCollector();
         storedValues.values().stream()
-                .filter(storedValue -> storedValue.evaluateSafely() instanceof ExtensionContext.Store.CloseableResource)
+                .filter(storedValue -> {
+                    final Object val = storedValue.evaluateSafely();
+                    return val instanceof ExtensionContext.Store.CloseableResource || val instanceof AutoCloseable;
+                })
                 .sorted(REVERSE_INSERT_ORDER)
-                .map(storedValue -> (ExtensionContext.Store.CloseableResource) storedValue.evaluate())
-                .forEach(resource -> throwableCollector.execute(resource::close));
+                .map(StoredValue::evaluate)
+                .forEach(resource -> throwableCollector.execute(() -> {
+                    if (resource instanceof ExtensionContext.Store.CloseableResource) {
+                        ((ExtensionContext.Store.CloseableResource) resource).close();
+                    } else {
+                        ((AutoCloseable) resource).close();
+                    }
+                }));
         throwableCollector.assertEmpty();
     }
 
