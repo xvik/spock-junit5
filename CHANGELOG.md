@@ -6,6 +6,10 @@
     - Implement missed extension context API methods
     - New callbacks BeforeClassTemplateInvocationCallback, AfterClassTemplateInvocationCallback 
       and ClassTemplateInvocationContextProvider not supported (no templates in spock)
+* [Junit 5.14](https://docs.junit.org/5.14.2/release-notes.html) compatibility
+    - Implement missed extension context API methods
+
+Note: there is no need for separate releases because only new methods were added
 
 ### 1.3.0 (2025-02-03)
 * [Junit 5.11](https://docs.junit.org/5.11.0/release-notes/#release-notes-5.11.0-junit-jupiter-deprecations-and-breaking-changes) compatibility: 
