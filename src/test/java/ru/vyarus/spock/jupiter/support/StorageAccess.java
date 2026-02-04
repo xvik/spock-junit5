@@ -30,8 +30,10 @@ public class StorageAccess implements
         getRootStore(context).put(ROOT, 42);
         getClassStore(context).put(CLASS, 12);
         // test auto closing
-        getRootStore(context).put("root_test", new ClosableValue("root"));
-        getClassStore(context).put("test", new ClosableValue("class"));
+        getRootStore(context).put("root_test", new CloseableValue("root"));
+        getRootStore(context).put("aroot_test", new CloseableValue("aroot"));
+        getClassStore(context).put("test", new CloseableValue("class"));
+        getClassStore(context).put("atest", new CloseableValue("aclass"));
     }
 
     @Override
@@ -45,7 +47,8 @@ public class StorageAccess implements
         ActionHolder.add("BeforeEachCallback " + getRootValue(context) + " / " + getClassValue(context) + " / " + getMethodValue(context));
         getLocalStore(context).put(METHOD, 11);
         // test auto closing
-        getLocalStore(context).put("test", new ClosableValue("method"));
+        getLocalStore(context).put("test", new CloseableValue("method"));
+        getLocalStore(context).put("atest", new CloseableValue("amethod"));
     }
 
     @Override
@@ -89,16 +92,30 @@ public class StorageAccess implements
                 context.getRequiredTestClass(), context.getRequiredTestMethod()));
     }
 
-    public static class ClosableValue implements ExtensionContext.Store.CloseableResource {
+    public static class CloseableValue implements ExtensionContext.Store.CloseableResource {
 
         private final String key;
 
-        public ClosableValue(final String key) {
+        public CloseableValue(final String key) {
             this.key = key;
         }
 
         @Override
         public void close() throws Throwable {
+            ActionHolder.add(key + " value closed");
+        }
+    }
+
+    public static class AutoCloseableValue implements AutoCloseable {
+
+        private final String key;
+
+        public AutoCloseableValue(final String key) {
+            this.key = key;
+        }
+
+        @Override
+        public void close() {
             ActionHolder.add(key + " value closed");
         }
     }

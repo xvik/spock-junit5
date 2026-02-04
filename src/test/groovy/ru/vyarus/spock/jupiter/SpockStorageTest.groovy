@@ -19,9 +19,12 @@ class SpockStorageTest extends AbstractTest {
                     "BeforeTestExecutionCallback 42 / 12 / 11",
                     "test.body",
                     "AfterEachCallback 42 / 12 / 11",
+                    "amethod value closed",
                     "method value closed",
                     "AfterAllCallback 42 / 12",
+                    "aclass value closed",
                     "class value closed",
+                    "aroot value closed",
                     "root value closed"]
     }
 }
