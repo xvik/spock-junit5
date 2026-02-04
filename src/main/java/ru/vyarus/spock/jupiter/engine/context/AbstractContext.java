@@ -142,6 +142,12 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     }
 
     @Override
+    public Store getStore(final StoreScope scope, final Namespace namespace) {
+        // no scopes support (not used in spock)
+        return getStore(namespace);
+    }
+
+    @Override
     public ExecutionMode getExecutionMode() {
         final org.spockframework.runtime.model.parallel.ExecutionMode executionMode =
                 Optional.ofNullable(spec)

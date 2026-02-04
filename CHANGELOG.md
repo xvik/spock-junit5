@@ -1,7 +1,11 @@
 ### 1.4.0 (2025-02-04)
 * [Junit 5.12](https://docs.junit.org/5.12.1/release-notes/) compatibility
     - Implement missed extension context API methods
-    - The new PreInterruptCallback extension isn’t supported because it is triggered by @Timeout extension, which is not supported
+    - The new PreInterruptCallback callback is not supported (triggered by a not supported @Timeout extension)
+* [Junit 5.13](https://docs.junit.org/5.13.4/release-notes/) compatibility
+    - Implement missed extension context API methods
+    - New callbacks BeforeClassTemplateInvocationCallback, AfterClassTemplateInvocationCallback 
+      and ClassTemplateInvocationContextProvider not supported (no templates in spock)
 
 ### 1.3.0 (2025-02-03)
 * [Junit 5.11](https://docs.junit.org/5.11.0/release-notes/#release-notes-5.11.0-junit-jupiter-deprecations-and-breaking-changes) compatibility: 
