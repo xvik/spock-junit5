@@ -28,7 +28,7 @@ dependencies {
     implementation 'org.junit.jupiter:junit-jupiter-api'
 
     // to not force exact version in user classpath
-    provided 'org.spockframework:spock-core:2.3-groovy-4.0'
+    provided 'org.spockframework:spock-core:2.4-groovy-5.0'
 
     testImplementation 'org.junit.platform:junit-platform-testkit'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter'

@@ -2,7 +2,11 @@
     - Apply context API changes
     - Storage implementation completely updated (based on the new jupiter implementation to behave exactly the same)
 * [BREAKING] Drop java 8-16 support (junit 6 dropped support for them)
-* [BReAKING] Artifact name changed: spock-junit6
+* [BREAKING] Artifact name changed: **spock-junit6** 
+  - version is not reset to 1.0 to preserve cross-versioning and to avoid usage mistakes
+  - a different artifact name would avoid dependabot updates spamming for incompatible junit versions
+* Fix spock 2.4 compatibility (spock 2.4 moved FEATURE_EXECUTION before initialization, which might cause problems 
+  to feature interceptors, trying to access junit store). 
 
 ### 1.4.0 (2026-02-04)
 * [Junit 5.12](https://docs.junit.org/5.12.1/release-notes/) compatibility
