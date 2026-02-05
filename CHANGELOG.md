@@ -1,3 +1,4 @@
+### 2.0.0 (2026-02-05)
 * [Junit 6.0](https://docs.junit.org/6.0.2/release-notes.html) compatibility
     - Apply context API changes
     - Storage implementation completely updated (based on the new jupiter implementation to behave exactly the same)

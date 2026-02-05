@@ -5,10 +5,21 @@
 [![Appveyor build status](https://ci.appveyor.com/api/projects/status/github/xvik/spock-junit5?svg=true)](https://ci.appveyor.com/project/xvik/spock-junit5)
 [![codecov](https://codecov.io/gh/xvik/spock-junit5/branch/master/graph/badge.svg)](https://codecov.io/gh/xvik/spock-junit5)
 
+**Pay attention**: artifacts differ for junit 5 and junit 6 (see [compatibility](#compatibility) section):
+
+* `spock-junit6` for junit 6
+* `spock-junit5` for junit 5
+
+Version is not reset for spock-junit6 to avoid usage mistakes.   
+Also, different artifact names should avoid dependabot "spam" for older versions
+
+`spock-junit5` is in the [separate branch](https://github.com/xvik/spock-junit5/tree/junit5)
+
 ### About
 
-Junit 5 (jupiter) [extensions](https://junit.org/junit5/docs/current/user-guide/#extensions) support
-for [Spock Framework](https://spockframework.org/) 2: allows using junit 5 extension in spock (like it was with junit 4 rules in spock 1). 
+Junit 5 and 6 (jupiter) [extensions](https://junit.org/junit5/docs/current/user-guide/#extensions) support
+for [Spock Framework](https://spockframework.org/) 2: allows using junit 5 (6) extension in spock (like it was with
+junit 4 rules in spock 1).
 
 Features:
 
@@ -33,7 +44,8 @@ validated with tests.
 Originally developed for [dropwizard-guicey](https://github.com/xvik/dropwizard-guicey) to avoid maintaining special
 spock extensions.
 
-Spock 1 provides spock-junit4 module to support junit 4 rules. At that time spock extensions model was "light years" ahead
+Spock 1 provides spock-junit4 module to support junit 4 rules. At that time spock extensions model was "light years"
+ahead
 of junit. But junit 5 extensions are nearly equal in power to spock extensions (both has pros and cons). It is a big
 loss for spock to ignore junit5 extensions:
 junit extensions are easier to write, but spock is still much better for writing tests.
@@ -54,37 +66,38 @@ Maven:
 
 <dependency>
     <groupId>ru.vyarus</groupId>
-    <artifactId>spock-junit5</artifactId>
-    <version>1.4.0</version>
+    <artifactId>spock-junit6</artifactId>
+    <version>2.0.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ru.vyarus:spock-junit5:1.4.0'
+implementation 'ru.vyarus:spock-junit6:2.0.0'
 ```
+
+**For junit 5 setup** see [junit5 docs](https://github.com/xvik/spock-junit5/tree/junit5).
 
 ### Compatibility
 
-Compiled for java 8 (compatible up to java 17), junit 5.14
+`spock-junit6` compiled for java 17 (junit6 requires java 17), junit 6  
+`spock-junit5` compiled for java 8 (tested up to java 21), junit 5.14
 
 The only transitive library dependency is *junit-jupiter-api*: to bring in required junit annotations
 and to prevent usage with lower junit versions.
 
 There is a high chance that a more recent module version will work with older junit versions
 (it depends on what extensions are used).
-In case of problems (like `NoClassDefFoundError`) select a lower module version (according to your junit version) 
+In case of problems (like `NoClassDefFoundError`) select a lower module version (according to your junit version)
 
-| Junit       | Version | Junit API Changes 
-|-------------|---------|-------------------
-| 5.12 - 5.14 | 1.4.0   | new methods in ExtensionContext  
-| 5.11        | 1.3.0   | changed initialization order for non-static extension fields
-| 5.9 - 5.10  | 1.2.0   | 
-| 5.7 - 5.8   | 1.0.1   | 
-
-**IMPORTANT**: I know that junit 6 has some API changes. A new compatible version will be released shortly
-(related [spring-boot4 problem](https://github.com/spockframework/spock/issues/2295#issuecomment-3828894546))
+| Junit       | Artifact                | Version                                                  | Junit API Changes                                            
+|-------------|-------------------------|----------------------------------------------------------|--------------------------------------------------------------
+| 6.0         | **spock&#x2011;junit6** | [2.0.0](https://github.com/xvik/spock-junit5/tree/2.0.0) | value storage API changes, java 17 required                              
+| 5.12 - 5.14 | spock&#x2011;junit5     | [1.4.0](https://github.com/xvik/spock-junit5/tree/1.4.0) | new methods in ExtensionContext                              
+| 5.11        | spock&#x2011;junit5     | [1.3.0](https://github.com/xvik/spock-junit5/tree/1.3.0) | changed initialization order for non-static extension fields 
+| 5.9 - 5.10  | spock&#x2011;junit5     | [1.2.0](https://github.com/xvik/spock-junit5/tree/1.2.0) |
+| 5.7 - 5.8   | spock&#x2011;junit5     | [1.0.1](https://github.com/xvik/spock-junit5/tree/1.0.1) |
 
 ##### Snapshots
 
@@ -148,7 +161,7 @@ also te same:
 
 ```groovy
 class Test extends Specification {
-    
+
     @RegisterExtension
     static Ext1 ext = new Ext1()
 
@@ -170,8 +183,11 @@ does not allow constructors usage):
 class Test extends Specification {
 
     void setupSpec(Integer arg) { ... }
+
     void cleanupSpec(Integer arg) { ... }
+
     void setup(Integer arg) { ... }
+
     void cleanup(Integer arg) { ... }
 
     def "Sample test"(Integer arg) { ... }
@@ -252,7 +268,7 @@ Not supported:
 * BeforeClassTemplateInvocationCallback
 * AfterClassTemplateInvocationCallback
 * TestInstanceFactory - impossible to support because spock does not delegate test instance creation
-* TestInstancePreConstructCallback - impossible to support because spock does not delegate test instance creation 
+* TestInstancePreConstructCallback - impossible to support because spock does not delegate test instance creation
 * InvocationInterceptor - could be supported, but it is very specific
 * PreInterruptCallback - triggered by @Timeout extensions which is not supported (requires InvocationInterceptor)
 * TestWatcher - no need in context of spock
@@ -270,22 +286,23 @@ so extension would work perfectly in spock.
 Junit register some extensions by default:
 
 ```java
-	private static final List<Extension> DEFAULT_STATELESS_EXTENSIONS = Collections.unmodifiableList(Arrays.asList(//
-		new DisabledCondition(),
-		new AutoCloseExtension(), 
-		new TimeoutExtension(), 
-		new RepeatedTestExtension(), 
-		new TestInfoParameterResolver(), 
-		new TestReporterParameterResolver()));
+    private static final List<Extension> DEFAULT_STATELESS_EXTENSIONS = Collections.unmodifiableList(Arrays.asList(//
+        new DisabledCondition(),
+        new AutoCloseExtension(),
+        new TimeoutExtension(),
+        new RepeatedTestExtension(),
+        new TestInfoParameterResolver(),
+        new TestReporterParameterResolver()));
 ```
 
 Plus, junit loads extensions from `META-INF/services/org.junit.jupiter.api.extension.Extension` file.
 
 **None of this would work in context of spock**.   
-This is intentional: as not all extensions are supported, then automatic loading may 
+This is intentional: as not all extensions are supported, then automatic loading may
 cause unexpected behavior. If you need any default extension - register it manually.
 
-Annotation-based extensions like `@Disabled` or `@AutoClose` would work in spock because they are declared with annotations. 
+Annotation-based extensions like `@Disabled` or `@AutoClose` would work in spock because they are declared with
+annotations.
 Extensions like `TestInfoParameterResolver` could be easully enabled with `@ExtendWith(TestInfoParameterResolver.class)`
 
 So overall not automatic defaults should not be a problem.
@@ -294,16 +311,26 @@ So overall not automatic defaults should not be a problem.
 
 Only spock and spock-junit5 dependencies would be required:
 
+**Spring-boot 4**:
+
 ```groovy
-testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+testImplementation 'org.spockframework:spock-core:2.4-groovy-5.0'
+testImplementation 'ru.vyarus:spock-junit6:2.0.0'
+```
+
+**Spring-boot 3**:
+
+```groovy
+testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
 testImplementation 'ru.vyarus:spock-junit5:1.4.0'
 ```
 
-Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module) 
+Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module)
 **should not be used** together with spock-junit5 for spring-boot tests!  
 Spock-junit5 would activate native spring junit5 extensions **the same way** as in raw junit
 
-Example MVC test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-boot-hello-world/src/test/java/com/mkyong/HelloControllerTests.java)):
+Example MVC test (based
+on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-boot-hello-world/src/test/java/com/mkyong/HelloControllerTests.java)):
 
 ```groovy
 @SpringBootTest
@@ -326,12 +353,13 @@ class ControllerTest extends Specification {
 }
 ```
 
-Example JPA test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-data-jpa/src/test/java/com/mkyong/BookRepositoryTest.java)):
+Example JPA test (based
+on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-data-jpa/src/test/java/com/mkyong/BookRepositoryTest.java)):
 
 ```groovy
 @DataJpaTest
 class BootTest extends Specification {
-  
+
     @Autowired
     TestEntityManager testEM
     @Autowired
@@ -360,9 +388,9 @@ class BootTest extends Specification {
 }
 ```
 
-### Spock @Shared state 
+### Spock @Shared state
 
-**Junit extensions would not be able to initialize `@Shared` fields**. So just don't use `@Shared` 
+**Junit extensions would not be able to initialize `@Shared` fields**. So just don't use `@Shared`
 on fields that must be initialized by junit extensions.
 
 The reason is: shared fields are managed on a special test instance, different
@@ -379,7 +407,7 @@ This limitation should not be a problem.
 ### Lifecycle
 
 Junit extensions support is implemented as global spock extension and so it would be executed before any other
-annotation-driven spock extension. 
+annotation-driven spock extension.
 
 The following code shows all possible fixture methods and all possible interceptors
 available for extension (from [spock docs](https://spockframework.org/spock/docs/2.0/extensions.html#_interceptors))
@@ -388,16 +416,19 @@ available for extension (from [spock docs](https://spockframework.org/spock/docs
 @ExtendWith(JunitExtension)
 @SpockExtension
 class SpockLifecyclesOrder extends Specification {
-    
+
     // fixture methods
-    
+
     void setupSpec() { ... }
+
     void cleanupSpec() { ... }
+
     void setup() { ... }
+
     void cleanup() { ... }
 
     // feature
-    
+
     def "Sample test"() { ... }
 }
 
@@ -430,7 +461,9 @@ class SpockExtensionImpl implements IAnnotationDrivenExtension<SpockExtension> {
         spec.allFixtureMethods*.addInterceptor new I('fixture method')
     }
 
-    static class I implements IMethodInterceptor { ... }
+    static class I implements IMethodInterceptor {
+        ...
+    }
 }
 ```
 
@@ -446,7 +479,7 @@ class SpockExtensionImpl implements IAnnotationDrivenExtension<SpockExtension> {
 |                                    | **TEST setupSpec**         |                     |                                                 |
 |                                    | initializer                | INITIALIZER         | spec.addInitializerInterceptor                  |
 | TestInstancePostProcessor (c)      |                            |                     |                                                 |
-|                                    | feature                    | FEATURE_EXECUTION   | spec.allFeatures*.addInterceptor                |
+|                                    | feature                    | FEATURE_EXECUTION*  | spec.allFeatures*.addInterceptor                |
 |                                    | iteration                  | ITERATION_EXECUTION | spec.allFeatures*.addIterationInterceptor       |
 | BeforeEachCallback (m)             |                            |                     |                                                 |
 |                                    | setup                      | SETUP               | spec.addSetupInterceptor                        |
@@ -455,7 +488,7 @@ class SpockExtensionImpl implements IAnnotationDrivenExtension<SpockExtension> {
 |                                    | **TEST setup**             |                     |                                                 |
 | BeforeTestExecutionCallback (m)    |                            |                     |                                                 |
 |                                    | feature method             | FEATURE             | spec.allFeatures*.featureMethod*.addInterceptor |
-|                                    | **TEST body**             |                     |                                                 |
+|                                    | **TEST body**              |                     |                                                 |
 | AfterTestExecutionCallback (m)     |                            |                     |                                                 |
 |                                    | cleanup                    | CLEANUP             | spec.addCleanupInterceptor                      |
 |                                    | cleanup method             | CLEANUP             | spec.cleanupMethods*.addInterceptor             |
@@ -469,7 +502,10 @@ class SpockExtensionImpl implements IAnnotationDrivenExtension<SpockExtension> {
 |                                    | **TEST cleanupSpec**       |                     |                                                 |
 | AfterAllCallback (c)               |                            |                     |                                                 |
 
-Kind is a `IMethodInvocation.getMethod().getKind()`. It is shown in case if you use `AbstractMethodInterceptor` which uses kind for method dispatching.
+\* in spock 2.4 `FEATURE_EXECUTION` goes before `INITIALIZER`
+
+Kind is a `IMethodInvocation.getMethod().getKind()`. It is shown in case if you use `AbstractMethodInterceptor` which
+uses kind for method dispatching.
 
 Junit extensions postfix means: (c) - class context, (m) - method context
 
@@ -492,17 +528,17 @@ Global context created once for all tests. It might be used as a global data sto
 ```java
 // BeforeAllCallback
 public void beforeAll(ExtensionContext context) throws Exception {
-        // global storage (same for all tests)
-        Store store = context.getRoot().getStore(Namespace.create("ext"));
-        if(store.get("some") == null) {
-            // would be called only in first test with this extension 
-            // (for other tests value would be preserved) 
-            store.put("some", "val");
-        }
+    // global storage (same for all tests)
+    Store store = context.getRoot().getStore(Namespace.create("ext"));
+    if (store.get("some") == null) {
+        // would be called only in first test with this extension 
+        // (for other tests value would be preserved) 
+        store.put("some", "val");
+    }
 }
 ```
 
-NOTE: this works exactly the same as it works in junit jupiter (showed just to confirm  this ability). 
+NOTE: this works exactly the same as it works in junit jupiter (showed just to confirm this ability).
 
 ### Access storage from spock
 
@@ -520,7 +556,8 @@ IMethodInterceptor interceptor = { invocation ->
 ```
 
 The problem may only appear if you'll need to modify value stored on class level (in this case use
-`JunitExtensionSupport.getStore(invocation.getSpec(), ExtensionContext.Namespace.create('name'))` to get class level storage
+`JunitExtensionSupport.getStore(invocation.getSpec(), ExtensionContext.Namespace.create('name'))` to get class level
+storage
 (common for all methods in test class)).
 
 Complete usage example:
@@ -537,11 +574,11 @@ class StoreAwareExtension implements IAnnotationDrivenExtension<SpockStore> {
     @Override
     void visitSpecAnnotation(SpockStore annotation, SpecInfo spec) {
         ExtLifecycle ls = new ExtLifecycle()
-        
+
         // listening for setup spec phase and test method execution
         spec.addSetupSpecInterceptor ls
         spec.allFeatures*.featureMethod*.addInterceptor ls
-        
+
         // create store for extension values on class level
         Store store = JunitExtensionSupport.getStore(spec, ExtensionContext.Namespace.create(StoreAwareExtension.name))
         // and store annotation value there
