@@ -1,3 +1,9 @@
+* [Junit 6.0](https://docs.junit.org/6.0.2/release-notes.html) compatibility
+    - Apply context API changes
+    - Storage implementation completely updated (based on the new jupiter implementation to behave exactly the same)
+* [BREAKING] Drop java 8-16 support (junit 6 dropped support for them)
+* [BReAKING] Artifact name changed: spock-junit6
+
 ### 1.4.0 (2026-02-04)
 * [Junit 5.12](https://docs.junit.org/5.12.1/release-notes/) compatibility
     - Implement missed extension context API methods

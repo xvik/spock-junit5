@@ -2,7 +2,7 @@ package ru.vyarus.spock.jupiter.util
 
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ExtensionContextException
-import ru.vyarus.spock.jupiter.engine.store.ExtensionValuesStore
+import ru.vyarus.spock.jupiter.engine.store.NamespacedHierarchicalStore
 import ru.vyarus.spock.jupiter.engine.store.NamespaceAwareStore
 import spock.lang.Specification
 
@@ -15,8 +15,8 @@ class ValueStoreTest extends Specification {
     def "Check value store methods"() {
 
         when: "prepare store"
-        ExtensionValuesStore parent = new ExtensionValuesStore(null)
-        NamespaceAwareStore store = new NamespaceAwareStore(new ExtensionValuesStore(parent), ExtensionContext.Namespace.create('test'))
+        NamespacedHierarchicalStore parent = new NamespacedHierarchicalStore(null)
+        NamespaceAwareStore store = new NamespaceAwareStore(new NamespacedHierarchicalStore(parent), ExtensionContext.Namespace.create('test'))
         store.put('tt', 12)
 
         then: "storage ok"
@@ -55,10 +55,10 @@ class ValueStoreTest extends Specification {
     def "Check root context modification"() {
 
         when: "prepare store"
-        ExtensionValuesStore parent = new ExtensionValuesStore(null)
+        NamespacedHierarchicalStore parent = new NamespacedHierarchicalStore(null)
         NamespaceAwareStore parentStore = new NamespaceAwareStore(parent, ExtensionContext.Namespace.create('test'))
         parentStore.put('tt', 12)
-        NamespaceAwareStore store = new NamespaceAwareStore(new ExtensionValuesStore(parent), ExtensionContext.Namespace.create('test'))
+        NamespaceAwareStore store = new NamespaceAwareStore(new NamespacedHierarchicalStore(parent), ExtensionContext.Namespace.create('test'))
         store.remove('tt')
 
         then: "value not removed from parent context"

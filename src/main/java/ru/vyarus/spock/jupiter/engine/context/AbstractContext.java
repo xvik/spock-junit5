@@ -6,13 +6,15 @@ import org.junit.jupiter.api.extension.ExecutableInvoker;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.commons.util.Preconditions;
 import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCollector;
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
-import ru.vyarus.spock.jupiter.engine.store.ExtensionValuesStore;
 import ru.vyarus.spock.jupiter.engine.store.NamespaceAwareStore;
+import ru.vyarus.spock.jupiter.engine.store.NamespacedHierarchicalStore;
 
 import java.lang.reflect.AnnotatedElement;
 import java.nio.file.Path;
@@ -37,7 +39,11 @@ import java.util.function.Function;
  * @author Vyacheslav Rusakov
  * @since 02.12.2021
  */
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "PMD.CouplingBetweenObjects"})
 public abstract class AbstractContext implements ExtensionContext, AutoCloseable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractContext.class);
+    private static final ExtensionContext.Namespace CLOSEABLE_RESOURCE_LOGGING_NAMESPACE = Namespace
+            .create(AbstractContext.class, "CloseableResourceLogging");
 
     protected final ExtensionContext parent;
     // this should not be there, but in case of spock it's more convenient to put it here
@@ -46,7 +52,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     protected final SpecInfo spec;
     protected final ThrowableCollector collector;
 
-    private final ExtensionValuesStore valuesStore;
+    private final NamespacedHierarchicalStore<Namespace> valuesStore;
     private final ExecutableInvoker invoker;
 
     public AbstractContext(final ExtensionContext parent,
@@ -112,7 +118,9 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     }
 
     @Override
-    public <T> Optional<T> getConfigurationParameter(final String key, final Function<String, T> transformer) {
+    public <T> Optional<T> getConfigurationParameter(
+            final String key,
+            final Function<? super String, ? extends T> transformer) {
         // not supported (maybe need emulation)
         return Optional.empty();
     }
@@ -138,7 +146,7 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     @Override
     public Store getStore(final Namespace namespace) {
         Preconditions.notNull(namespace, "Namespace must not be null");
-        return new NamespaceAwareStore(this.valuesStore, namespace);
+        return new NamespaceAwareStore(this.valuesStore, convert(namespace));
     }
 
     @Override
@@ -180,15 +188,39 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
 
     @Override
     public void close() {
-        valuesStore.closeAllStoredCloseableValues();
+        valuesStore.close();
     }
 
     // org.junit.jupiter.engine.descriptor.AbstractExtensionContext.createStore
-    private ExtensionValuesStore createStore(final ExtensionContext parent) {
-        ExtensionValuesStore parentStore = null;
-        if (parent != null) {
-            parentStore = ((AbstractContext) parent).valuesStore;
-        }
-        return new ExtensionValuesStore(parentStore);
+    private NamespacedHierarchicalStore<Namespace> createStore(final ExtensionContext parent) {
+        return new NamespacedHierarchicalStore<>(parent != null ? ((AbstractContext) parent).valuesStore : null,
+                createCloseAction());
+    }
+
+    private Namespace convert(final ExtensionContext.Namespace namespace) {
+        return namespace.equals(ExtensionContext.Namespace.GLOBAL) //
+                ? Namespace.GLOBAL //
+                : Namespace.create(namespace.getParts());
+    }
+
+    @SuppressWarnings("deprecation")
+    private <N> NamespacedHierarchicalStore.CloseAction<N> createCloseAction() {
+        return (ns, key, value) -> {
+
+            if (value instanceof AutoCloseable closeable) {
+                closeable.close();
+                return;
+            }
+
+            if (value instanceof Store.CloseableResource resource) {
+                
+                getStore(CLOSEABLE_RESOURCE_LOGGING_NAMESPACE).computeIfAbsent(value.getClass(), type -> {
+                    LOGGER.warn(() -> "Type implements CloseableResource but not AutoCloseable: " + type.getName());
+                    return true;
+                });
+
+                resource.close();
+            }
+        };
     }
 }

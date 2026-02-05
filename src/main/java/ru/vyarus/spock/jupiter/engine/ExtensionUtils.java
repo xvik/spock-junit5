@@ -3,11 +3,14 @@ package ru.vyarus.spock.jupiter.engine;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.AfterClassTemplateInvocationCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeClassTemplateInvocationCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
+import org.junit.jupiter.api.extension.ClassTemplateInvocationContextProvider;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.Extension;
@@ -89,11 +92,10 @@ public final class ExtensionUtils {
     public static final List<Class<? extends Extension>> UNSUPPORTED_EXTENSIONS = Arrays.asList(
             // not included because it doesn't matter in context of spock
             TestTemplateInvocationContextProvider.class,
-            // not enabled to avoid class not found exception when used with 5.12
-            // (templates are obviously not supported)
-            // ClassTemplateInvocationContextProvider.class,
-            // BeforeClassTemplateInvocationCallback.class,
-            // AfterClassTemplateInvocationCallback.class,
+            // templates are obviously not supported
+            ClassTemplateInvocationContextProvider.class,
+            BeforeClassTemplateInvocationCallback.class,
+            AfterClassTemplateInvocationCallback.class,
 
             // impossible to add (spock does not allow this)
             TestInstanceFactory.class,

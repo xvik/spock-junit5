@@ -13,7 +13,7 @@ plugins {
 }
 
 java {
-    sourceCompatibility = 1.8
+    sourceCompatibility = 17
 }
 
 wrapper {
@@ -22,7 +22,7 @@ wrapper {
 
 repositories { mavenLocal(); mavenCentral() }
 dependencies {
-    implementation platform('org.junit:junit-bom:5.14.2')
+    implementation platform('org.junit:junit-bom:6.0.2')
 
     // direct dependency to prevent usage with older junit api
     implementation 'org.junit.jupiter:junit-jupiter-api'
@@ -35,7 +35,7 @@ dependencies {
 }
 
 group = 'ru.vyarus'
-description = 'Junit 5 extensions support for Spock Framework 2'
+description = 'Junit 6 extensions support for Spock Framework 2'
 
 github {
     user = 'xvik'
@@ -58,7 +58,7 @@ maven {
 
 javaLib {
     // java 9 auto module name
-    autoModuleName = 'ru.vyarus.spock.junit5'
+    autoModuleName = 'ru.vyarus.spock.junit6'
     // don't publish gradle metadata artifact
     withoutGradleMetadata()
 }
