@@ -28,7 +28,7 @@ dependencies {
     implementation 'org.junit.jupiter:junit-jupiter-api'
 
     // to not force exact version in user classpath
-    provided 'org.spockframework:spock-core:2.3-groovy-4.0'
+    provided 'org.spockframework:spock-core:2.4-groovy-4.0'
 
     testImplementation 'org.junit.platform:junit-platform-testkit'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter'
@@ -82,7 +82,7 @@ tasks.withType(Sign) { onlyIf { !System.getenv('JITPACK') && !version.endsWith('
 // Required signing properties for release: signing.keyId, signing.password and signing.secretKeyRingFile
 // (https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials)
 
-release.git.requireBranch.set('master')
+release.git.requireBranch.set('junit5')
 
 afterReleaseBuild {
     dependsOn = ['publishToSonatype',

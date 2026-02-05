@@ -94,7 +94,8 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
      */
     public MethodContext getMethodContext(final IMethodInvocation invocation) {
         return Preconditions.notNull(methods.get(invocation.getInstance()), () -> "Method context not found for '"
-                + invocation.getSpec().getDisplayName() + "/" + invocation.getFeature().getDisplayName() + "' feature");
+                + invocation.getSpec().getDisplayName() + "/" + invocation.getFeature().getDisplayName()
+                + "' feature (spock " + invocation.getMethod().getKind() + " phase)");
     }
 
     @Override

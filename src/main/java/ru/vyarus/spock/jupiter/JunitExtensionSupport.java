@@ -133,7 +133,7 @@ public class JunitExtensionSupport implements IGlobalExtension {
                 methodInfo.addInterceptor(interceptor.getFixtureMethodsInterceptor()));
 
         // intercept test methods (inject parameters and before/after execution hooks)
-        spec.getAllFeatures().forEach(featureInfo -> featureInfo.getFeatureMethod().addInterceptor(interceptor));
+        spec.getAllFeatures().forEach(featureInfo -> featureInfo.addInterceptor(interceptor));
     }
 
     // SPOCK extensions API (allow easy access to junit storage)
