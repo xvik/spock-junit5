@@ -98,6 +98,20 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
                 + "' feature (spock " + invocation.getMethod().getKind() + " phase)");
     }
 
+    /**
+     * Safe way to get currently available context.
+     *
+     * @param invocation spock event
+     * @return method context or spec-level context
+     */
+    public AbstractContext getAvailableContext(final IMethodInvocation invocation) {
+        final Object instance = invocation.getInstance();
+        if (instance != null && methods.containsKey(instance)) {
+            return methods.get(instance);
+        }
+        return context;
+    }
+
     @Override
     public void interceptSetupSpecMethod(final IMethodInvocation invocation) throws Throwable {
         junit.beforeAll(context);

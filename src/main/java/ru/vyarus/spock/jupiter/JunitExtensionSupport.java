@@ -4,7 +4,6 @@ import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.spockframework.runtime.extension.IGlobalExtension;
 import org.spockframework.runtime.extension.IMethodInvocation;
-import org.spockframework.runtime.model.MethodKind;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.ExtensionUtils;
@@ -133,7 +132,7 @@ public class JunitExtensionSupport implements IGlobalExtension {
                 methodInfo.addInterceptor(interceptor.getFixtureMethodsInterceptor()));
 
         // intercept test methods (inject parameters and before/after execution hooks)
-        spec.getAllFeatures().forEach(featureInfo -> featureInfo.addInterceptor(interceptor));
+        spec.getAllFeatures().forEach(featureInfo -> featureInfo.getFeatureMethod().addInterceptor(interceptor));
     }
 
     // SPOCK extensions API (allow easy access to junit storage)
@@ -194,13 +193,7 @@ public class JunitExtensionSupport implements IGlobalExtension {
      *                              or method context not found when should be
      */
     public static Store getStore(final IMethodInvocation invocation, final Namespace namespace) {
-        // method context created AFTER complete initialization, so it would be impossible to have method context here
-        return invocation.getMethod().getKind() == MethodKind.INITIALIZER
-                // filter shared init case (instance present, but method context would not be ready)
-                || invocation.getFeature() == null
-                || invocation.getInstance() == null
-                ? getStore(invocation.getSpec(), namespace)
-                : findInterceptor(invocation.getSpec()).getMethodContext(invocation).getStore(namespace);
+        return findInterceptor(invocation.getSpec()).getAvailableContext(invocation).getStore(namespace);
     }
 
     private static ExtensionLifecycleMerger findInterceptor(final SpecInfo spec) {

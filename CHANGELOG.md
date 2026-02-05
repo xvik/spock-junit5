@@ -1,5 +1,5 @@
-* Fix spock 2.4 compatibility (spock 2.4 moved FEATURE_EXECUTION before initialization, which might cause problems
-  to feature interceptors, trying to access junit store).
+* Fix spock 2.4 compatibility: spock 2.4 moved FEATURE_EXECUTION before INITIALIZATION, so now
+  JunitExtensionSupport.getStore(_,_) simply returns available context without trying to guess
 
 ### 1.4.0 (2026-02-04)
 * [Junit 5.12](https://docs.junit.org/5.12.1/release-notes/) compatibility
