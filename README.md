@@ -58,7 +58,7 @@ There should be no official `spock-junit5` module so name would stay unique
 
 ### Setup
 
-[![Maven Central](https://img.shields.io/maven-central/v/ru.vyarus/spock-junit5.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/ru.vyarus/spock-junit5)
+[![Maven Central](https://img.shields.io/maven-central/v/ru.vyarus/spock-junit6.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/ru.vyarus/spock-junit6)
 
 Maven:
 
