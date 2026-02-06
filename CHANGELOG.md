@@ -1,3 +1,6 @@
+### 2.0.1 (2026-02-06)
+* Fix github repository links in POM
+
 ### 2.0.0 (2026-02-05)
 * [Junit 6.0](https://docs.junit.org/6.0.2/release-notes.html) compatibility
     - Apply context API changes

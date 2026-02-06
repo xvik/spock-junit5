@@ -67,14 +67,14 @@ Maven:
 <dependency>
     <groupId>ru.vyarus</groupId>
     <artifactId>spock-junit6</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ru.vyarus:spock-junit6:2.0.0'
+implementation 'ru.vyarus:spock-junit6:2.0.1'
 ```
 
 **For junit 5 setup** see [junit5 docs](https://github.com/xvik/spock-junit5/tree/junit5).
@@ -93,8 +93,8 @@ In case of problems (like `NoClassDefFoundError`) select a lower module version 
 
 | Junit       | Artifact                | Version                                                  | Junit API Changes                                            
 |-------------|-------------------------|----------------------------------------------------------|--------------------------------------------------------------
-| 6.0         | **spock&#x2011;junit6** | [2.0.0](https://github.com/xvik/spock-junit5/tree/2.0.0) | value storage API changes, java 17 required                              
-| 5.12 - 5.14 | spock&#x2011;junit5     | [1.4.0](https://github.com/xvik/spock-junit5/tree/1.4.0) | new methods in ExtensionContext                              
+| 6.0         | **spock&#x2011;junit6** | [2.0.1](https://github.com/xvik/spock-junit5/tree/2.0.1) | value storage API changes, java 17 required                              
+| 5.12 - 5.14 | spock&#x2011;junit5     | [1.4.1](https://github.com/xvik/spock-junit5/tree/1.4.1) | new methods in ExtensionContext                              
 | 5.11        | spock&#x2011;junit5     | [1.3.0](https://github.com/xvik/spock-junit5/tree/1.3.0) | changed initialization order for non-static extension fields 
 | 5.9 - 5.10  | spock&#x2011;junit5     | [1.2.0](https://github.com/xvik/spock-junit5/tree/1.2.0) |
 | 5.7 - 5.8   | spock&#x2011;junit5     | [1.0.1](https://github.com/xvik/spock-junit5/tree/1.0.1) |
@@ -315,14 +315,14 @@ Only spock and spock-junit5 dependencies would be required:
 
 ```groovy
 testImplementation 'org.spockframework:spock-core:2.4-groovy-5.0'
-testImplementation 'ru.vyarus:spock-junit6:2.0.0'
+testImplementation 'ru.vyarus:spock-junit6:2.0.1'
 ```
 
 **Spring-boot 3**:
 
 ```groovy
 testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
-testImplementation 'ru.vyarus:spock-junit5:1.4.0'
+testImplementation 'ru.vyarus:spock-junit5:1.4.1'
 ```
 
 Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module)
