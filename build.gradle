@@ -40,6 +40,7 @@ description = 'Junit 6 extensions support for Spock Framework 2'
 github {
     user = 'xvik'
     license = 'MIT'
+    repository = 'spock-junit5'
 }
 
 maven {
