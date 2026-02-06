@@ -55,14 +55,14 @@ Maven:
 <dependency>
     <groupId>ru.vyarus</groupId>
     <artifactId>spock-junit5</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ru.vyarus:spock-junit5:1.4.0'
+implementation 'ru.vyarus:spock-junit5:1.4.1'
 ```
 
 ### Compatibility
@@ -78,7 +78,7 @@ In case of problems (like `NoClassDefFoundError`) select a lower module version 
 
 | Junit       | Version | Junit API Changes 
 |-------------|---------|-------------------
-| 5.12 - 5.14 | 1.4.0   | new methods in ExtensionContext  
+| 5.12 - 5.14 | 1.4.1   | new methods in ExtensionContext  
 | 5.11        | 1.3.0   | changed initialization order for non-static extension fields
 | 5.9 - 5.10  | 1.2.0   | 
 | 5.7 - 5.8   | 1.0.1   | 
@@ -296,7 +296,7 @@ Only spock and spock-junit5 dependencies would be required:
 
 ```groovy
 testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
-testImplementation 'ru.vyarus:spock-junit5:1.4.0'
+testImplementation 'ru.vyarus:spock-junit5:1.4.1'
 ```
 
 Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module) 

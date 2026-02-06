@@ -1,3 +1,4 @@
+### 1.4.1 (2026-02-06)
 * Fix spock 2.4 compatibility: spock 2.4 moved FEATURE_EXECUTION before INITIALIZATION, so now
   JunitExtensionSupport.getStore(_,_) simply returns available context without trying to guess
 
