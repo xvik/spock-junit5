@@ -5,7 +5,7 @@ import org.junit.jupiter.api.extension.TestInstances;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -22,7 +22,7 @@ import java.util.Optional;
 public class EngineContext extends AbstractContext {
 
   public EngineContext() {
-    super(null, new ExtensionRegistry(null, List.of()), null, null);
+    super(null, new ExtensionRegistry(null, Collections.emptyList()), null, null);
   }
 
   @Override
