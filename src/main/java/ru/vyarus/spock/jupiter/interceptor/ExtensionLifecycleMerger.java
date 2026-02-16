@@ -49,11 +49,12 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     private final Map<Object, MethodContext> methods = new ConcurrentHashMap<>();
 
     private final ClassContext context;
-    private final JunitApiExecutor junit = new JunitApiExecutor();
+    private final JunitApiExecutor junit;
     private final IMethodInterceptor fixtureMethodsInterceptor;
 
     public ExtensionLifecycleMerger(final ClassContext context) {
         this.context = context;
+        this.junit = new JunitApiExecutor(context.getDebugger());
 
         fixtureMethodsInterceptor = invocation -> {
             AbstractContext ctx = context;
@@ -203,9 +204,9 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
     }
 
     private MethodContext createMethodContext(final FeatureInfo featureInfo, final Object instance) {
-        final Method method = featureInfo.getFeatureMethod().getReflection();
-        final ExtensionRegistry methodRegistry = ExtensionUtils.createMethodRegistry(context.getRegistry(), method);
-        ExtensionUtils.registerExtensionsFromExecutableParameters(methodRegistry, method);
+        final MethodInfo method = featureInfo.getFeatureMethod();
+        final ExtensionRegistry methodRegistry = ExtensionUtils.createMethodRegistry(
+                context.getRegistry(), method, context.getDebugger());
         return new MethodContext(context, methodRegistry, featureInfo, instance);
     }
 
@@ -222,7 +223,7 @@ public class ExtensionLifecycleMerger extends AbstractMethodInterceptor {
         }
         final Parameter[] parameters = method.getParameters();
         for (int i = 0; i < arguments.length; i++) {
-            // look only arguments not processed by spock (e.g data providers or other extensions)
+            // look only arguments not processed by spock (e.g. data providers or other extensions)
             if (arguments[i] == MethodInfo.MISSING_ARGUMENT) {
                 // based on org.junit.jupiter.engine.execution.ExecutableInvoker.resolveParameter
                 final Parameter param = parameters[i];

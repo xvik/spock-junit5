@@ -11,6 +11,7 @@ import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCo
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
+import ru.vyarus.spock.jupiter.engine.debug.ExtensionsDebugger;
 import ru.vyarus.spock.jupiter.engine.store.ExtensionValuesStore;
 import ru.vyarus.spock.jupiter.engine.store.NamespaceAwareStore;
 
@@ -37,6 +38,7 @@ import java.util.function.Function;
  * @author Vyacheslav Rusakov
  * @since 02.12.2021
  */
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public abstract class AbstractContext implements ExtensionContext, AutoCloseable {
 
     protected final ExtensionContext parent;
@@ -181,6 +183,14 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     @Override
     public void close() {
         valuesStore.closeAllStoredCloseableValues();
+    }
+
+    public ExtensionsDebugger getDebugger() {
+        // ClassContext, containing debugger, overrides this method, so need to only cover other cases
+        // This method might be called ONLY on method context, otherwise error should be thrown
+        return ((ClassContext) getParent()
+                .orElseThrow(() -> new IllegalStateException("No parent context")))
+                .getDebugger();
     }
 
     // org.junit.jupiter.engine.descriptor.AbstractExtensionContext.createStore

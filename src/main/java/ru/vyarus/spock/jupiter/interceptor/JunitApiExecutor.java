@@ -21,7 +21,9 @@ import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
 import ru.vyarus.spock.jupiter.engine.context.MethodContext;
+import ru.vyarus.spock.jupiter.engine.debug.ExtensionsDebugger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,13 +48,20 @@ import java.util.stream.Collectors;
  * @author Vyacheslav Rusakov
  * @since 28.12.2021
  */
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class JunitApiExecutor {
     private final Logger logger = LoggerFactory.getLogger(JunitApiExecutor.class);
+
+    private final ExtensionsDebugger debugger;
 
     // since 5.11 field extensions registered on class level (to early detect ExtendWith annotations)
     // beforeAll called before test instance is ready, but afterAll is called when all field extensions are available
     // So we have to store all afterAll extensions before fileds resolution to avoid calling field extensions
     private List<AfterAllCallback> afterAllExtensions;
+
+    public JunitApiExecutor(final ExtensionsDebugger debugger) {
+        this.debugger = debugger;
+    }
 
     // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeBeforeAllCallbacks
     public void beforeAll(final ClassContext context) {
@@ -61,21 +70,27 @@ public class JunitApiExecutor {
         // Also, it must be done before beforeAll processing because it could fail!
         afterAllExtensions = getReversedExtensions(context, AfterAllCallback.class);
 
+        final List<BeforeAllCallback> called = new ArrayList<>();
         for (BeforeAllCallback callback : getExtensions(context, BeforeAllCallback.class)) {
             context.getCollector().execute(() -> callback.beforeAll(context));
+            called.add(callback);
             if (context.getCollector().isNotEmpty()) {
                 break;
             }
         }
+        debugger.extensionsCalled(BeforeAllCallback.class, called);
         context.getCollector().assertEmpty();
     }
 
     // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.instantiateAndPostProcessTestInstance
     public void instancePostProcessors(final ClassContext context, final Object instance) {
         context.getCollector().execute(() -> {
-            getExtensions(context, TestInstancePostProcessor.class).forEach(
+            final List<TestInstancePostProcessor> extensions =
+                    getExtensions(context, TestInstancePostProcessor.class);
+            extensions.forEach(
                     extension -> executeAndMaskThrowable(() ->
                             extension.postProcessTestInstance(instance, context)));
+            debugger.extensionsCalled(TestInstancePostProcessor.class, extensions);
             // init non-static field extensions
             context.getRegistry().initializeExtensions(context.getRequiredTestClass(), instance);
         });
@@ -86,48 +101,60 @@ public class JunitApiExecutor {
     // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeBeforeEachCallbacks
     public void beforeEach(final MethodContext context) {
         final ThrowableCollector collector = context.getCollector();
+        final List<BeforeEachCallback> called = new ArrayList<>();
         for (BeforeEachCallback callback : getExtensions(context, BeforeEachCallback.class)) {
             collector.execute(() -> callback.beforeEach(context));
+            called.add(callback);
             if (collector.isNotEmpty()) {
                 break;
             }
         }
+        debugger.extensionsCalled(BeforeEachCallback.class, called);
         collector.assertEmpty();
     }
 
     // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeBeforeTestExecutionCallbacks()
     public void beforeTestExecution(final MethodContext context) {
         final ThrowableCollector collector = context.getCollector();
+        final List<BeforeTestExecutionCallback> called = new ArrayList<>();
         for (BeforeTestExecutionCallback callback : getExtensions(context, BeforeTestExecutionCallback.class)) {
             collector.execute(() -> callback.beforeTestExecution(context));
+            called.add(callback);
             if (collector.isNotEmpty()) {
                 break;
             }
         }
+        debugger.extensionsCalled(BeforeTestExecutionCallback.class, called);
         collector.assertEmpty();
     }
 
     // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeAfterTestExecutionCallbacks()
     public void afterTestExecution(final MethodContext context) {
         final ThrowableCollector collector = context.getCollector();
-        getReversedExtensions(context, AfterTestExecutionCallback.class).forEach(
-                callback -> collector.execute(() -> callback.afterTestExecution(context)));
+        final List<AfterTestExecutionCallback> extensions = getReversedExtensions(
+                context, AfterTestExecutionCallback.class);
+        extensions.forEach(callback -> collector.execute(() -> callback.afterTestExecution(context)));
+        debugger.extensionsCalled(AfterTestExecutionCallback.class, extensions);
         collector.assertEmpty();
     }
 
     // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeAfterEachCallbacks
     public void afterEach(final MethodContext context) {
         final ThrowableCollector collector = context.getCollector();
-        getReversedExtensions(context, AfterEachCallback.class).forEach(
-                callback -> collector.execute(() -> callback.afterEach(context)));
+        final List<AfterEachCallback> extensions = getReversedExtensions(context, AfterEachCallback.class);
+        extensions.forEach(callback -> collector.execute(() -> callback.afterEach(context)));
+        debugger.extensionsCalled(AfterEachCallback.class, extensions);
         collector.assertEmpty();
     }
 
     // org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestInstancePreDestroyCallbacks
     public void instancePreDestroy(final MethodContext context) {
         final ThrowableCollector collector = context.getCollector();
-        getReversedExtensions(context, TestInstancePreDestroyCallback.class).forEach(callback ->
+        final List<TestInstancePreDestroyCallback> extensions = getReversedExtensions(
+                context, TestInstancePreDestroyCallback.class);
+        extensions.forEach(callback ->
                 collector.execute(() -> callback.preDestroyTestInstance(context)));
+        debugger.extensionsCalled(TestInstancePreDestroyCallback.class, extensions);
         collector.assertEmpty();
     }
 
@@ -138,6 +165,7 @@ public class JunitApiExecutor {
             final ThrowableCollector collector = context.getCollector();
             afterAllExtensions.forEach(
                     extension -> collector.execute(() -> extension.afterAll(context)));
+            debugger.extensionsCalled(AfterAllCallback.class, afterAllExtensions);
             collector.assertEmpty();
         }
     }
@@ -206,15 +234,22 @@ public class JunitApiExecutor {
             final Throwable throwable,
             final ExceptionHandlerInvoker<E> handlerInvoker) {
 
-        final List<E> extensions = registry.getReversedExtensions(handlerType);
-        invokeExecutionExceptionHandlers(extensions, throwable, handlerInvoker);
+        final List<E> invoked = new ArrayList<>();
+        try {
+            invokeExecutionExceptionHandlers(registry.getReversedExtensions(handlerType),
+                    throwable, handlerInvoker, invoked);
+        } finally {
+            // log before exception thrown
+            debugger.extensionsCalled(handlerType, invoked);
+        }
     }
 
     // org.junit.jupiter.engine.descriptor.JupiterTestDescriptor.invokeExecutionExceptionHandlers
     private <E extends Extension> void invokeExecutionExceptionHandlers(
             final List<E> exceptionHandlers,
             final Throwable throwable,
-            final ExceptionHandlerInvoker<E> handlerInvoker) {
+            final ExceptionHandlerInvoker<E> handlerInvoker,
+            final List<E> invokedExtensions) {
 
         // No handlers left?
         if (exceptionHandlers.isEmpty()) {
@@ -223,10 +258,12 @@ public class JunitApiExecutor {
 
         try {
             // Invoke next available handler
-            handlerInvoker.invoke(exceptionHandlers.remove(0), throwable);
+            final E ext = exceptionHandlers.remove(0);
+            invokedExtensions.add(ext);
+            handlerInvoker.invoke(ext, throwable);
         } catch (Throwable handledThrowable) {
             UnrecoverableExceptions.rethrowIfUnrecoverable(handledThrowable);
-            invokeExecutionExceptionHandlers(exceptionHandlers, handledThrowable, handlerInvoker);
+            invokeExecutionExceptionHandlers(exceptionHandlers, handledThrowable, handlerInvoker, invokedExtensions);
         }
     }
 

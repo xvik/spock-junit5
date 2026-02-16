@@ -10,6 +10,9 @@ import org.spockframework.runtime.model.ISkippable;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.lang.String.format;
 
 /**
@@ -52,11 +55,17 @@ public final class ConditionEvaluator {
     public static ConditionEvaluationResult evaluate(final ExtensionRegistry extensionRegistry,
                                                      final ExtensionContext context) {
 
-        return extensionRegistry.stream(ExecutionCondition.class)
-                .map(condition -> evaluateImpl(condition, context))
+        final List<ExecutionCondition> called = new ArrayList<>();
+        final ConditionEvaluationResult result = extensionRegistry.stream(ExecutionCondition.class)
+                .map(condition -> {
+                    called.add(condition);
+                    return evaluateImpl(condition, context);
+                })
                 .filter(ConditionEvaluationResult::isDisabled)
                 .findFirst()
                 .orElse(ENABLED);
+        ((AbstractContext) context).getDebugger().extensionsCalled(ExecutionCondition.class, called);
+        return result;
     }
 
     private static ConditionEvaluationResult evaluateImpl(final ExecutionCondition condition,
