@@ -1,5 +1,6 @@
 package ru.vyarus.spock.jupiter;
 
+import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.spockframework.runtime.extension.IGlobalExtension;
@@ -12,6 +13,10 @@ import ru.vyarus.spock.jupiter.engine.context.ClassContext;
 import ru.vyarus.spock.jupiter.engine.context.EngineContext;
 import ru.vyarus.spock.jupiter.engine.execution.ConditionEvaluator;
 import ru.vyarus.spock.jupiter.interceptor.ExtensionLifecycleMerger;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Global extension applied to all specs. Searches for declared junit extensions and calls them simulating junit
@@ -95,8 +100,10 @@ public class JunitExtensionSupport implements IGlobalExtension {
                 debug != null && debug.registrations(),
                 debug != null && debug.usage(),
                 debug != null && debug.columnMode());
+        final List<Class<? extends Extension>> ignored =
+                getIgnoredExtensions(spec.getAnnotation(IgnoreJunitExtensions.class));
 
-        final ExtensionRegistry registry = ExtensionUtils.createRegistry(testClass, debugger);
+        final ExtensionRegistry registry = ExtensionUtils.createRegistry(testClass, ignored, debugger);
 
         // Register extensions from static fields here, at the class level but
         // after extensions registered via @ExtendWith.
@@ -208,5 +215,28 @@ public class JunitExtensionSupport implements IGlobalExtension {
                 .filter(interceptor -> interceptor instanceof ExtensionLifecycleMerger)
                 .findFirst().orElseThrow(() ->
                         new NullPointerException("Junit support not found in spec: " + spec.getDisplayName()));
+    }
+
+    @SuppressWarnings({"unchecked", "PMD.SystemPrintln"})
+    private List<Class<? extends Extension>> getIgnoredExtensions(final IgnoreJunitExtensions ignore) {
+        final List<Class<? extends Extension>> ignoreExtensions = new ArrayList<>();
+        if (ignore != null && ignore.value().length > 0) {
+            Collections.addAll(ignoreExtensions, ignore.value());
+        }
+        // special case: spock-spring is often used for spring-boot tests, so it makes sense to disable
+        // spring junit extension automatically to avoid conflicts. This way, it would be possible to use
+        // spock's mocking abilities
+        try {
+            Class.forName("org.spockframework.spring.SpringExtension");
+            System.out.println("[spock-junit6] WARN: Spring junit extension disabled (org.springframework.test"
+                    + ".context.junit.jupiter.SpringExtension) because spock-spring detected and so it will handle "
+                    + "spring context initialization (all other junit extensions will work). If you want to run "
+                    + "spring as junit extension, use spock-core only (without spock-spring).");
+            ignoreExtensions.add((Class<? extends Extension>) Class.forName(
+                    "org.springframework.test.context.junit.jupiter.SpringExtension"));
+        } catch (Exception ignored) {
+            // exception thrown in case when no spock-spring in classpath
+        }
+        return ignoreExtensions;
     }
 }
