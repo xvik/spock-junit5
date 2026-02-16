@@ -1,3 +1,5 @@
+* Add @DebugJunitExtensions annotation to print registered and called junit extensions
+
 ### 2.0.1 (2026-02-06)
 * Fix github repository links in POM
 

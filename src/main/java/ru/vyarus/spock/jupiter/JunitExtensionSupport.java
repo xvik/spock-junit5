@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.spockframework.runtime.extension.IGlobalExtension;
 import org.spockframework.runtime.extension.IMethodInvocation;
 import org.spockframework.runtime.model.SpecInfo;
+import ru.vyarus.spock.jupiter.engine.debug.ExtensionsDebugger;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
 import ru.vyarus.spock.jupiter.engine.ExtensionUtils;
 import ru.vyarus.spock.jupiter.engine.context.ClassContext;
@@ -89,20 +90,26 @@ public class JunitExtensionSupport implements IGlobalExtension {
     public void visitSpec(final SpecInfo spec) {
         // org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.prepare
         final Class<?> testClass = spec.getReflection();
-        final ExtensionRegistry registry = ExtensionUtils.createRegistry(testClass);
+        final DebugJunitExtensions debug = spec.getAnnotation(DebugJunitExtensions.class);
+        final ExtensionsDebugger debugger = new ExtensionsDebugger(
+                debug != null && debug.registrations(),
+                debug != null && debug.usage(),
+                debug != null && debug.columnMode());
+
+        final ExtensionRegistry registry = ExtensionUtils.createRegistry(testClass, debugger);
 
         // Register extensions from static fields here, at the class level but
         // after extensions registered via @ExtendWith.
-        ExtensionUtils.registerExtensionsFromStaticFields(registry, testClass);
+        ExtensionUtils.registerExtensionsFromStaticFields(registry, testClass, debugger);
 
         // register extensions from setupSpec, setup, cleanup, cleanupSpec method parameters
         spec.getAllFixtureMethods().forEach(methodInfo -> ExtensionUtils
-                .registerExtensionsFromExecutableParameters(registry, methodInfo.getReflection()));
+                .registerExtensionsFromExecutableParameters(registry, methodInfo, debugger));
 
         // register extensions from non-static fields (lazy registration so extension could participate in beforeAll)
-        ExtensionUtils.registerExtensionsFromInstanceFields(registry, testClass);
+        ExtensionUtils.registerExtensionsFromInstanceFields(registry, testClass, debugger);
 
-        final ClassContext specContext = new ClassContext(engineContext, registry, spec);
+        final ClassContext specContext = new ClassContext(engineContext, registry, spec, debugger);
 
         // condition check must be delayed to let spock extensions to work first because otherwise it is impossible
         // to prevent condition exception (required for tests)

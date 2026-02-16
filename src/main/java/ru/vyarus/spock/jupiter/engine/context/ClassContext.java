@@ -4,6 +4,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestInstances;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
+import ru.vyarus.spock.jupiter.engine.debug.ExtensionsDebugger;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -17,9 +18,14 @@ import java.util.Optional;
  * @since 20.12.2021
  */
 public class ClassContext extends AbstractContext {
+    private final ExtensionsDebugger debugger;
 
-    public ClassContext(final ExtensionContext root, final ExtensionRegistry registry, final SpecInfo spec) {
+    public ClassContext(final ExtensionContext root,
+                        final ExtensionRegistry registry,
+                        final SpecInfo spec,
+                        final ExtensionsDebugger debugger) {
         super(root, registry, spec.getReflection(), spec);
+        this.debugger = debugger;
     }
 
     @Override
@@ -45,5 +51,11 @@ public class ClassContext extends AbstractContext {
     @Override
     public Optional<TestInstances> getTestInstances() {
         return Optional.empty();
+    }
+
+    // have to add debugger into class context because it needs to be called by ExecutanleInvoker
+    @Override
+    public ExtensionsDebugger getDebugger() {
+        return debugger;
     }
 }

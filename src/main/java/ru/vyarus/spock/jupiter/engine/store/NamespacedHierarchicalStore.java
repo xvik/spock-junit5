@@ -73,6 +73,8 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
     /**
      * Create a child store with this store as its parent and this store's close
      * action.
+     *
+     * @return new child store
      */
     public NamespacedHierarchicalStore<N> newChild() {
         return new NamespacedHierarchicalStore<>(this, this.closeAction);
@@ -165,6 +167,7 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
      * @param namespace    the namespace; never {@code null}
      * @param key          the key; never {@code null}
      * @param requiredType the required type of the value; never {@code null}
+     * @param <T>          required type
      * @return the stored value; may be {@code null}
      * @throws NamespacedHierarchicalStoreException if the stored value cannot
      *                                              be cast to the required type, or if this store has already
@@ -186,6 +189,8 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
      * @param defaultCreator the function called with the supplied {@code key}
      *                       to create a new value; never {@code null} and must not return
      *                       {@code null}
+     * @param <K>            key type
+     * @param <V>            default value type
      * @return the stored value; never {@code null}
      * @throws NamespacedHierarchicalStoreException if this store has already been
      *                                              closed
@@ -244,6 +249,8 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
      *                       to create a new value; never {@code null} and must not return
      *                       {@code null}
      * @param requiredType   the required type of the value; never {@code null}
+     * @param <K>            key type
+     * @param <V>            value type
      * @return the stored value; never {@code null}
      * @throws NamespacedHierarchicalStoreException if the stored value cannot
      *                                              be cast to the required type, or if this store has already
@@ -266,6 +273,8 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
      * @param key            the key; never {@code null}
      * @param defaultCreator the function called with the supplied {@code key}
      *                       to create a new value; never {@code null} but may return {@code null}
+     * @param <K>            key type
+     * @param <V>            value type
      * @return the stored value; may be {@code null}
      * @throws NamespacedHierarchicalStoreException if this store has already been
      *                                              closed
@@ -313,6 +322,8 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
      * @param defaultCreator the function called with the supplied {@code key}
      *                       to create a new value; never {@code null} but may return {@code null}
      * @param requiredType   the required type of the value; never {@code null}
+     * @param <K>            key type
+     * @param <V>            value type
      * @return the stored value; may be {@code null}
      * @throws NamespacedHierarchicalStoreException if the stored value cannot
      *                                              be cast to the required type, or if this store has already
@@ -380,6 +391,7 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
      * @param namespace    the namespace; never {@code null}
      * @param key          the key; never {@code null}
      * @param requiredType the required type of the value; never {@code null}
+     * @param <T>          required value type
      * @return the previously stored value; may be {@code null}
      * @throws NamespacedHierarchicalStoreException if the stored value cannot
      *                                              be cast to the required type, or if this store has already
@@ -672,6 +684,8 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
          * {@linkplain #close(Object, Object, Object) closes} any value that
          * implements {@link AutoCloseable}.
          *
+         * @param <N> namespace type
+         * @return close action
          * @since 6.0
          */
         static <N> CloseAction<N> closeAutoCloseables() {
@@ -688,6 +702,7 @@ public class NamespacedHierarchicalStore<N> implements AutoCloseable {
          * @param namespace the namespace; never {@code null}
          * @param key       the key; never {@code null}
          * @param value     the value; never {@code null}
+         * @throws java.lang.Throwable on error
          */
         void close(N namespace, Object key, Object value) throws Throwable;
     }

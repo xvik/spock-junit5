@@ -37,6 +37,7 @@ import org.junit.platform.commons.util.StringUtils;
 import org.junit.platform.commons.util.UnrecoverableExceptions;
 import org.spockframework.runtime.model.MethodInfo;
 import ru.vyarus.spock.jupiter.engine.context.AbstractContext;
+import ru.vyarus.spock.jupiter.engine.debug.ExtensionsDebugger;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
@@ -45,6 +46,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -117,21 +119,29 @@ public final class ExtensionUtils {
     private ExtensionUtils() {
     }
 
-    public static ExtensionRegistry createRegistry(final Class<?> testClass) {
+    public static ExtensionRegistry createRegistry(final Class<?> testClass, final ExtensionsDebugger debugger) {
         final ExtensionRegistry registry = new ExtensionRegistry(null);
-        findClassExtensions(testClass).forEach(registry::registerExtension);
+        final List<Class<? extends Extension>> exts = findClassExtensions(testClass)
+                .filter(registry::registerExtension)
+                .toList();
+        debugger.registeredClassExtensions(testClass, exts);
         return registry;
     }
 
     // source: org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.populateNewExtensionRegistry
     // (aggregates several deeper methods)
-    public static ExtensionRegistry createMethodRegistry(final ExtensionRegistry root, final Method method) {
-        final Stream<Class<? extends Extension>> extensions = streamDeclarativeExtensionTypes(method);
+    public static ExtensionRegistry createMethodRegistry(final ExtensionRegistry root,
+                                                         final MethodInfo method,
+                                                         final ExtensionsDebugger debugger) {
         final ExtensionRegistry registry = new ExtensionRegistry(root);
-        extensions.forEach(registry::registerExtension);
+        final Method reflection = method.getReflection();
+        final List<Class<? extends Extension>> extensions = streamDeclarativeExtensionTypes(reflection)
+                .filter(registry::registerExtension)
+                .toList();
+        debugger.registeredMethodExtensions(method, extensions);
 
         // extensions from method parameters
-        registerExtensionsFromExecutableParameters(registry, method);
+        registerExtensionsFromExecutableParameters(registry, method, debugger);
         return registry;
     }
 
@@ -149,22 +159,28 @@ public final class ExtensionUtils {
      *
      * @param registrar the registrar with which to register the extensions; never {@code null}
      * @param clazz     the class or interface in which to find the fields; never {@code null}
+     * @param debugger  extensions debugger
      * @since 5.11
      */
     // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromStaticFields
-    public static void registerExtensionsFromStaticFields(final ExtensionRegistry registrar, final Class<?> clazz) {
+    public static void registerExtensionsFromStaticFields(final ExtensionRegistry registrar,
+                                                          final Class<?> clazz,
+                                                          final ExtensionsDebugger debugger) {
         streamExtensionRegisteringFields(clazz, ReflectionUtils::isStatic)
                 .forEach(field -> {
                     final List<Class<? extends Extension>> extensionTypes = streamDeclarativeExtensionTypes(field)
-                            .collect(toList());
+                            .toList();
                     final boolean isExtendWithPresent = !extensionTypes.isEmpty();
 
                     if (isExtendWithPresent) {
-                        extensionTypes.forEach(registrar::registerExtension);
+                        debugger.registeredStaticFieldExtensions(field,
+                                extensionTypes.stream().filter(registrar::registerExtension).toList());
                     }
                     if (isAnnotated(field, RegisterExtension.class)) {
                         final Extension extension = readAndValidateExtensionFromField(field, null, extensionTypes);
                         registrar.registerExtension(extension, field);
+                        debugger.registeredStaticFieldExtensions(field,
+                                Collections.singletonList(extension.getClass()));
                     }
                 });
     }
@@ -179,10 +195,14 @@ public final class ExtensionUtils {
      *
      * @param registrar the registrar with which to register the extensions; never {@code null}
      * @param clazz     the class or interface in which to find the fields; never {@code null}
+     * @param debugger  extensions debugger
      * @since 5.11
      */
     // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromInstanceFields
-    public static void registerExtensionsFromInstanceFields(final ExtensionRegistry registrar, final Class<?> clazz) {
+    @SuppressWarnings("unchecked")
+    public static void registerExtensionsFromInstanceFields(final ExtensionRegistry registrar,
+                                                            final Class<?> clazz,
+                                                            final ExtensionsDebugger debugger) {
         streamExtensionRegisteringFields(clazz, ReflectionUtils::isNotStatic)
                 .forEach(field -> {
                     final List<Class<? extends Extension>> extensionTypes = streamDeclarativeExtensionTypes(field)
@@ -190,11 +210,14 @@ public final class ExtensionUtils {
                     final boolean isExtendWithPresent = !extensionTypes.isEmpty();
 
                     if (isExtendWithPresent) {
-                        extensionTypes.forEach(registrar::registerExtension);
+                        debugger.registeredFieldExtensions(field,
+                                extensionTypes.stream().filter(registrar::registerExtension).toList());
                     }
                     if (isAnnotated(field, RegisterExtension.class)) {
                         registrar.registerUninitializedExtension(clazz, field,
                                 instance -> readAndValidateExtensionFromField(field, instance, extensionTypes));
+                        debugger.registeredFieldExtensions(field, Collections.singletonList(
+                                (Class<? extends Extension>) field.getType()));
                     }
                 });
     }
@@ -206,20 +229,25 @@ public final class ExtensionUtils {
      * {@link ExtendWith @ExtendWith}.
      *
      * @param registrar  the registrar with which to register the extensions; never {@code null}
-     * @param executable the constructor or method whose parameters should be searched; never {@code null}
+     * @param method method whose parameters should be searched; never {@code null}
+     * @param debugger   extensions debugger
      */
     // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromExecutableParameters
     public static void registerExtensionsFromExecutableParameters(final ExtensionRegistry registrar,
-                                                                  final Executable executable) {
+                                                                  final MethodInfo method,
+                                                                  final ExtensionsDebugger debugger) {
         Preconditions.notNull(registrar, "ExtensionRegistry must not be null");
-        Preconditions.notNull(executable, "Executable must not be null");
+        Preconditions.notNull(method, "Executable must not be null");
 
         final AtomicInteger index = new AtomicInteger();
 
-        Arrays.stream(executable.getParameters())
+        final List<Class<? extends Extension>> exts = Arrays.stream(method.getReflection().getParameters())
                 .map(parameter -> findRepeatableAnnotations(parameter, index.getAndIncrement(), ExtendWith.class))
                 .flatMap(ExtensionUtils::streamDeclarativeExtensionTypes)
-                .forEach(registrar::registerExtension);
+                .filter(registrar::registerExtension)
+                .toList();
+        // constructor is not possible in the context of spock
+        debugger.registeredMethodParametersExtensions(method, exts);
     }
 
     // based on org.junit.jupiter.engine.execution.ExecutableInvoker.resolveParameter
@@ -230,7 +258,7 @@ public final class ExtensionUtils {
         try {
             final List<ParameterResolver> exts = context.getRegistry().stream(ParameterResolver.class)
                     .filter(resolver -> resolver.supportsParameter(parameterContext, context))
-                    .collect(toList());
+                    .toList();
 
             if (exts.isEmpty()) {
                 // no problem - assume other spock extension  supposed to proceed with this parameter
@@ -256,6 +284,7 @@ public final class ExtensionUtils {
                     "ParameterResolver [%s] resolved a value of type [%s] for parameter [%s] in %s [%s].",
                     resolver.getClass().getName(), (value != null ? value.getClass().getName() : null),
                     parameterContext.getParameter(), asLabel(executable), executable.toGenericString()));
+            context.getDebugger().extensionsCalled(ParameterResolver.class, Collections.singletonList(resolver));
 
             return value;
         } catch (ParameterResolutionException ex) {

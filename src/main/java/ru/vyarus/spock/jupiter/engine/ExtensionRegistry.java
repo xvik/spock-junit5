@@ -116,11 +116,14 @@ public class ExtensionRegistry {
      * given type already exists in the registry or a parent registry.
      *
      * @param extensionType the type of extension to register
+     * @return true when the extension was registered, false if the extension is already registered
      */
-    public void registerExtension(final Class<? extends Extension> extensionType) {
-        if (!isAlreadyRegistered(extensionType)) {
+    public boolean registerExtension(final Class<? extends Extension> extensionType) {
+        final boolean register = !isAlreadyRegistered(extensionType);
+        if (register) {
             registerExtension(ReflectionUtils.newInstance(extensionType), null);
         }
+        return register;
     }
 
     /**

@@ -13,6 +13,7 @@ import org.junit.platform.engine.support.hierarchical.OpenTest4JAwareThrowableCo
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
 import org.spockframework.runtime.model.SpecInfo;
 import ru.vyarus.spock.jupiter.engine.ExtensionRegistry;
+import ru.vyarus.spock.jupiter.engine.debug.ExtensionsDebugger;
 import ru.vyarus.spock.jupiter.engine.store.NamespaceAwareStore;
 import ru.vyarus.spock.jupiter.engine.store.NamespacedHierarchicalStore;
 
@@ -189,6 +190,12 @@ public abstract class AbstractContext implements ExtensionContext, AutoCloseable
     @Override
     public void close() {
         valuesStore.close();
+    }
+
+    public ExtensionsDebugger getDebugger() {
+        // ClassContext, containing debugger, overrides this method, so need to only cover other cases
+        // This method might be called ONLY on method context, otherwise error should be thrown
+        return ((ClassContext) getParent().orElseThrow()).getDebugger();
     }
 
     // org.junit.jupiter.engine.descriptor.AbstractExtensionContext.createStore

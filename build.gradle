@@ -31,6 +31,7 @@ dependencies {
     provided 'org.spockframework:spock-core:2.4-groovy-5.0'
 
     testImplementation 'org.junit.platform:junit-platform-testkit'
+    testImplementation 'io.github.joke:spock-outputcapture:4.0.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter'
 }
 
