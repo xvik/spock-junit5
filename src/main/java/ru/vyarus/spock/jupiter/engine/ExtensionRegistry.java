@@ -36,11 +36,17 @@ import static java.util.stream.Collectors.toCollection;
 public class ExtensionRegistry {
     private final Logger logger = LoggerFactory.getLogger(ExtensionRegistry.class);
 
+    private final List<Class<? extends Extension>> ignored;
     private final Set<Class<? extends Extension>> registeredExtensionTypes;
     private final List<Entry> registeredExtensions;
     private final Map<Class<?>, LateInitExtensions> lateInitExtensions;
 
     public ExtensionRegistry(final ExtensionRegistry parent) {
+        this(parent, parent.getIgnored());
+    }
+
+    public ExtensionRegistry(final ExtensionRegistry parent, final List<Class<? extends Extension>> ignored) {
+        this.ignored = ignored;
         this.registeredExtensionTypes = new LinkedHashSet<>();
         this.registeredExtensions = new ArrayList<>();
         this.lateInitExtensions = new LinkedHashMap<>();
@@ -119,7 +125,7 @@ public class ExtensionRegistry {
      * @return true when the extension was registered, false if the extension is already registered
      */
     public boolean registerExtension(final Class<? extends Extension> extensionType) {
-        final boolean register = !isAlreadyRegistered(extensionType);
+        final boolean register = !ignored.contains(extensionType) && !isAlreadyRegistered(extensionType);
         if (register) {
             registerExtension(ReflectionUtils.newInstance(extensionType), null);
         }
@@ -145,17 +151,22 @@ public class ExtensionRegistry {
      *
      * @param extension the extension to register; never {@code null}
      * @param source    the source of the extension
+     * @return true if extension registered, false if ignored
      */
-    public void registerExtension(final Extension extension, final Object source) {
+    public boolean registerExtension(final Extension extension, final Object source) {
         Preconditions.notNull(extension, "Extension must not be null");
 
         final Class<? extends Extension> type = extension.getClass();
+        if (ignored.contains(type)) {
+            return false;
+        }
         validateExtensionType(type);
 
         logger.trace(() -> String.format("Registering extension [%s]%s", extension, buildSourceInfo(source)));
 
         this.registeredExtensions.add(Entry.of(extension));
         this.registeredExtensionTypes.add(type);
+        return true;
     }
 
     /**
@@ -173,18 +184,24 @@ public class ExtensionRegistry {
      * @param source the source of the extension; never {@code null}
      * @param initializer the initializer function to be used to create the
      * extension; never {@code null}
+     * @return true if extension registered, false if ignored
      */
-    public void registerUninitializedExtension(final Class<?> testClass, final Field source,
+    public boolean registerUninitializedExtension(final Class<?> testClass, final Field source,
                                                final Function<Object, ? extends Extension> initializer) {
         Preconditions.notNull(testClass, "testClass must not be null");
         Preconditions.notNull(source, "source must not be null");
         Preconditions.notNull(initializer, "initializer must not be null");
+
+        if (ignored.contains(source.getType())) {
+            return false;
+        }
 
         logger.trace(() -> String.format("Registering local extension (late-init) for [%s]%s",
                 source.getType().getName(), buildSourceInfo(source)));
 
         final LateInitEntry entry = getLateInitExtensions(testClass).add(new LateInitEntry(testClass, initializer));
         this.registeredExtensions.add(entry);
+        return true;
     }
 
     /**
@@ -204,6 +221,13 @@ public class ExtensionRegistry {
         if (extensions != null) {
             extensions.initialize(testInstance);
         }
+    }
+
+    /**
+     * @return list of ignored extensions or empty list
+     */
+    public List<Class<? extends Extension>> getIgnored() {
+        return ignored;
     }
 
     @SuppressWarnings("checkstyle:MultipleStringLiterals")

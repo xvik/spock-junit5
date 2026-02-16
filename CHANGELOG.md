@@ -1,4 +1,8 @@
 * Add @DebugJunitExtensions annotation to print registered and called junit extensions
+* Add @IgnoreJunitExtensions annotation to ignore some declared junit extensions
+  (to resolve collisions like with spock-spring)
+* Automatically ignore junit SpringExtension if spock-spring is present
+  (spock manage spring context and all other junit extensions will work)
 
 ### 2.0.1 (2026-02-06)
 * Fix github repository links in POM

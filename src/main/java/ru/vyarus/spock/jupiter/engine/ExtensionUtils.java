@@ -119,8 +119,10 @@ public final class ExtensionUtils {
     private ExtensionUtils() {
     }
 
-    public static ExtensionRegistry createRegistry(final Class<?> testClass, final ExtensionsDebugger debugger) {
-        final ExtensionRegistry registry = new ExtensionRegistry(null);
+    public static ExtensionRegistry createRegistry(final Class<?> testClass,
+                                                   final List<Class<? extends Extension>> ignored,
+                                                   final ExtensionsDebugger debugger) {
+        final ExtensionRegistry registry = new ExtensionRegistry(null, ignored);
         final List<Class<? extends Extension>> exts = findClassExtensions(testClass)
                 .filter(registry::registerExtension)
                 .toList();
@@ -178,9 +180,10 @@ public final class ExtensionUtils {
                     }
                     if (isAnnotated(field, RegisterExtension.class)) {
                         final Extension extension = readAndValidateExtensionFromField(field, null, extensionTypes);
-                        registrar.registerExtension(extension, field);
-                        debugger.registeredStaticFieldExtensions(field,
-                                Collections.singletonList(extension.getClass()));
+                        if (registrar.registerExtension(extension, field)) {
+                            debugger.registeredStaticFieldExtensions(field,
+                                    Collections.singletonList(extension.getClass()));
+                        }
                     }
                 });
     }
@@ -213,9 +216,9 @@ public final class ExtensionUtils {
                         debugger.registeredFieldExtensions(field,
                                 extensionTypes.stream().filter(registrar::registerExtension).toList());
                     }
-                    if (isAnnotated(field, RegisterExtension.class)) {
-                        registrar.registerUninitializedExtension(clazz, field,
-                                instance -> readAndValidateExtensionFromField(field, instance, extensionTypes));
+                    if (isAnnotated(field, RegisterExtension.class)
+                            && registrar.registerUninitializedExtension(clazz, field, instance ->
+                            readAndValidateExtensionFromField(field, instance, extensionTypes))) {
                         debugger.registeredFieldExtensions(field, Collections.singletonList(
                                 (Class<? extends Extension>) field.getType()));
                     }
@@ -228,9 +231,9 @@ public final class ExtensionUtils {
      * or {@link java.lang.reflect.Method}) that are annotated with
      * {@link ExtendWith @ExtendWith}.
      *
-     * @param registrar  the registrar with which to register the extensions; never {@code null}
-     * @param method method whose parameters should be searched; never {@code null}
-     * @param debugger   extensions debugger
+     * @param registrar the registrar with which to register the extensions; never {@code null}
+     * @param method    method whose parameters should be searched; never {@code null}
+     * @param debugger  extensions debugger
      */
     // based on org.junit.jupiter.engine.descriptor.ExtensionUtils.registerExtensionsFromExecutableParameters
     public static void registerExtensionsFromExecutableParameters(final ExtensionRegistry registrar,
