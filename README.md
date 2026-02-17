@@ -366,7 +366,7 @@ but all other junit extensions will work (essentially, it "applies" `@IngoreJuni
 There would be a new message in log, indicating that you're using pure spock spring support (and an alternative is possible):
 
 ```
-[spock-junit5] Disabling spring junit extension (org.springframework.test.context.junit.jupiter.SpringExtension) because spock-spring detected and so it will handle spring context initialization (all other junit extensions will work). If you want to run spring as junit extension, use spock-core only (without spock-spring).
+[spock-junit5] Spring junit extension disabled (org.springframework.test.context.junit.jupiter.SpringExtension) because spock-spring detected and so it will handle spring context initialization (all other junit extensions will work). If you want to run spring as junit extension, use spock-core only (without spock-spring).
 ```
 
 The main benefit is that you **could use** spock mocking (`@SpringBean`) and other spock features.
