@@ -44,8 +44,7 @@ validated with tests.
 Originally developed for [dropwizard-guicey](https://github.com/xvik/dropwizard-guicey) to avoid maintaining special
 spock extensions.
 
-Spock 1 provides spock-junit4 module to support junit 4 rules. At that time spock extensions model was "light years"
-ahead
+Spock 1 provides spock-junit4 module to support junit 4 rules. At that time spock extensions model was "light years" ahead
 of junit. But junit 5 extensions are nearly equal in power to spock extensions (both has pros and cons). It is a big
 loss for spock to ignore junit5 extensions:
 junit extensions are easier to write, but spock is still much better for writing tests.
@@ -67,14 +66,14 @@ Maven:
 <dependency>
     <groupId>ru.vyarus</groupId>
     <artifactId>spock-junit6</artifactId>
-    <version>2.0.1</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'ru.vyarus:spock-junit6:2.0.1'
+implementation 'ru.vyarus:spock-junit6:2.1.0'
 ```
 
 **For junit 5 setup** see [junit5 docs](https://github.com/xvik/spock-junit5/tree/junit5).
@@ -89,12 +88,12 @@ and to prevent usage with lower junit versions.
 
 There is a high chance that a more recent module version will work with older junit versions
 (it depends on what extensions are used).
-In case of problems (like `NoClassDefFoundError`) select a lower module version (according to your junit version)
+In case of problems (like `NoClassDefFoundError`) select a lower module version (according to your junit version) 
 
 | Junit       | Artifact                | Version                                                  | Junit API Changes                                            
 |-------------|-------------------------|----------------------------------------------------------|--------------------------------------------------------------
-| 6.0         | **spock&#x2011;junit6** | [2.0.1](https://github.com/xvik/spock-junit5/tree/2.0.1) | value storage API changes, java 17 required                              
-| 5.12 - 5.14 | spock&#x2011;junit5     | [1.4.1](https://github.com/xvik/spock-junit5/tree/1.4.1) | new methods in ExtensionContext                              
+| 6.0         | **spock&#x2011;junit6** | [2.1.0](https://github.com/xvik/spock-junit5/tree/2.1.0) | value storage API changes, java 17 required                              
+| 5.12 - 5.14 | spock&#x2011;junit5     | [1.5.0](https://github.com/xvik/spock-junit5/tree/1.5.0) | new methods in ExtensionContext                              
 | 5.11        | spock&#x2011;junit5     | [1.3.0](https://github.com/xvik/spock-junit5/tree/1.3.0) | changed initialization order for non-static extension fields 
 | 5.9 - 5.10  | spock&#x2011;junit5     | [1.2.0](https://github.com/xvik/spock-junit5/tree/1.2.0) |
 | 5.7 - 5.8   | spock&#x2011;junit5     | [1.0.1](https://github.com/xvik/spock-junit5/tree/1.0.1) |
@@ -307,30 +306,113 @@ Extensions like `TestInfoParameterResolver` could be easully enabled with `@Exte
 
 So overall not automatic defaults should not be a problem.
 
+### Debugging
+
+Annotate spock test with  `@DebugJunitExtensions` and all registered junit extensions will be printed to console:
+
+```groovy
+@ExtendWith([Ext0, Ext1])
+@DebugJunitExtensions
+class Test extends Specification {
+```
+
+```
+[junit] Registered test class (Test) extensions: Ext0, Ext1 
+[junit] BeforeAllCallback extensions called: Ext0
+[junit] BeforeTestExecutionCallback extensions called: Ext1
+```
+
+Optionally, extension registrations or extension execution messages could be disabled:
+
+```groovy
+@DebugJunitExtensions(registrations = false)
+```
+
+```groovy
+@DebugJunitExtensions(usage = false)
+```
+
+If you have many extensions, it might be easier to read in column mode:
+
+```groovy
+@DebugJunitExtensions(columnMode = true)
+```
+
+```groovy
+[junit] Registered test class (Test) extensions: 
+    Ext0
+    Ext1 
+```
+
+### Ignore extensions
+
+Sometimes it is useful to ignore some junit extensions: for example, if spock extension 
+already uses extension annotation natively (like `@SpringBootTest` used by spock-spring module).
+
+Use `@IgnoreJunitExtensions` annotation to ignore any junit extensions:
+
+```groovy
+@ExtendWith([Ext0, Ext1])
+@IgnoreJunitExtensions(Ext1)
+class Test extends Specification {
+```
+
+NOTE: this could be used to temporarily disable some extensions (without removing their declaration)
+
+Use `@DebugJunitExtensions` to see which junit extensions are actually used
+(there are no special messages about ignored extensions)
+
 ### Usage with Spring-Boot
 
-Only spock and spock-junit5 dependencies would be required:
+Spock-junit6 could be used either with `spock-spring` or with `spock-core`.
 
-**Spring-boot 4**:
+Note: for spring-boot 3 use [spock-junit5](https://github.com/xvik/spock-junit5/tree/junit5)
+
+#### Spock-spring compatibility
+
+When `spock-spring` is in the classpath:
+
+```groovy
+testImplementation 'org.spockframework:spock-spring:2.4-groovy-5.0'
+testImplementation 'ru.vyarus:spock-junit6:2.1.0'
+```
+
+spock-junit6 **automatically disables** junit `SpringExtension`.
+This means that `spock-spring` will startup spring context (not junit extension!),
+but all other junit extensions will work (essentially, it "applies" `@IngoreJunitExtensions(SpringExtension)` automatically).
+
+There would be a new message in log, indicating that you're using pure spock spring support (and an alternative is possible):
+
+```
+[spock-junit6] Spring junit extension disabled (org.springframework.test.context.junit.jupiter.SpringExtension) because spock-spring detected and so it will handle spring context initialization (all other junit extensions will work). If you want to run spring as junit extension, use spock-core only (without spock-spring).
+```
+
+The main benefit is that you **could use** spock mocking (`@SpringBean`) and other spock features.
+
+IMPORTANT: In case of problems (spring has many test annotations, and I did not check all of them),
+use `@DebugJunitExtensions` to see what extensions are actually used and `@IgnoreJunitExtensions` to ignore 
+conflicting extensions (assuming spock-spring already implements them natively).
+Or just migrate to `spock-core` and use pure junit spring extensions (see below).
+
+
+#### Pure junit way
+
+If you want to use the native junit spring extension, then don't apply `spock-spring` (use `spock-core` only):
 
 ```groovy
 testImplementation 'org.spockframework:spock-core:2.4-groovy-5.0'
-testImplementation 'ru.vyarus:spock-junit6:2.0.1'
+testImplementation 'ru.vyarus:spock-junit6:2.1.0'
 ```
 
-**Spring-boot 3**:
+In this case, the native junit spring extension will be used.
 
-```groovy
-testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
-testImplementation 'ru.vyarus:spock-junit5:1.4.1'
-```
+NOTE: in this case, you **would not** be able to use spock mocking (`@SpringBean`), instead you'll have
+to use [mockito alternatives](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html#testing.spring-boot-applications.mocking-beans) 
+(`@MockitoBean` and `@MockitoSpyBean`).
 
-Note that [spock-spring module](https://spockframework.org/spock/docs/2.3/modules.html#_spring_module)
-**should not be used** together with spock-junit5 for spring-boot tests!  
-Spock-junit5 would activate native spring junit5 extensions **the same way** as in raw junit
+#### MVC test example
 
-Example MVC test (based
-on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-boot-hello-world/src/test/java/com/mkyong/HelloControllerTests.java)):
+Example MVC test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-boot-hello-world/src/test/java/com/mkyong/HelloControllerTests.java)):
 
 ```groovy
 @SpringBootTest
@@ -353,13 +435,12 @@ class ControllerTest extends Specification {
 }
 ```
 
-Example JPA test (based
-on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-data-jpa/src/test/java/com/mkyong/BookRepositoryTest.java)):
+Example JPA test (based on [this example](https://github.com/mkyong/spring-boot/blob/master/spring-data-jpa/src/test/java/com/mkyong/BookRepositoryTest.java)):
 
 ```groovy
 @DataJpaTest
 class BootTest extends Specification {
-
+  
     @Autowired
     TestEntityManager testEM
     @Autowired
@@ -461,9 +542,7 @@ class SpockExtensionImpl implements IAnnotationDrivenExtension<SpockExtension> {
         spec.allFixtureMethods*.addInterceptor new I('fixture method')
     }
 
-    static class I implements IMethodInterceptor {
-        ...
-    }
+    static class I implements IMethodInterceptor { ... }
 }
 ```
 
