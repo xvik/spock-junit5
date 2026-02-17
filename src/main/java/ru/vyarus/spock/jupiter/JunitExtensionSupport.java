@@ -228,7 +228,7 @@ public class JunitExtensionSupport implements IGlobalExtension {
         // spock's mocking abilities
         try {
             Class.forName("org.spockframework.spring.SpringExtension");
-            System.out.println("[spock-junit5] WARN: Spring junit extension disabled (org.springframework.test"
+            System.out.println("[spock-junit5] Spring junit extension disabled (org.springframework.test"
                     + ".context.junit.jupiter.SpringExtension) because spock-spring detected and so it will handle "
                     + "spring context initialization (all other junit extensions will work). If you want to run "
                     + "spring as junit extension, use spock-core only (without spock-spring).");
