@@ -254,7 +254,6 @@ public final class ExtensionUtils {
     }
 
     // based on org.junit.jupiter.engine.execution.ExecutableInvoker.resolveParameter
-    @SuppressWarnings("PMD.AvoidRethrowingException")
     public static Object resolveParameter(final ParameterContext parameterContext,
                                           final Executable executable,
                                           final AbstractContext context) {
